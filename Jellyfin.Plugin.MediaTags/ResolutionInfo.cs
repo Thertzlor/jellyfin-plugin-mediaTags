@@ -8,17 +8,12 @@ public class ResolutionInfo
     /// <summary>
     /// Gets or sets the ISO 639-2 language code (3 letters).
     /// </summary>
-    public int? MinHeight { get; set; }
-
-    /// <summary>
-    /// Gets or sets the ISO 639-2/B bibliographic language code (3 letters).
-    /// </summary>
     public int? MaxHeight { get; set; }
 
     /// <summary>
     /// Gets or sets the ISO 639-1 language code (2 letters).
     /// </summary>
-    public int? MinWidth { get; set; }
+    public int? MaxWidth { get; set; }
 
     /// <summary>
     /// Gets or sets the English name of the language.

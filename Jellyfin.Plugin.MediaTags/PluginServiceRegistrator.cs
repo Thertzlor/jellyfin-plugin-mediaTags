@@ -15,7 +15,6 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
     {
         // Register services
         serviceCollection.AddSingleton<ConfigurationService>();
-        serviceCollection.AddSingleton<MediaConversionService>();
         serviceCollection.AddSingleton<MediaTagService>();
         serviceCollection.AddSingleton<LibraryQueryService>();
         serviceCollection.AddSingleton<HdrExtractionService>();

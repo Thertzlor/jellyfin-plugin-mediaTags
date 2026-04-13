@@ -23,7 +23,6 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     private readonly ILibraryManager _libraryManager;
     private readonly ILogger<MediaTagsManager> _logger;
     private readonly ConfigurationService _configService;
-    private readonly MediaConversionService _conversionService;
     private readonly MediaTagService _tagService;
     private readonly LibraryQueryService _queryService;
     private readonly HdrExtractionService _hdrService;
@@ -34,7 +33,6 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <param name="libraryManager">Instance of the <see cref="ILibraryManager"/> interface.</param>
     /// <param name="logger">Instance of the <see cref="ILogger{MediaTagsManager}"/> interface.</param>
     /// <param name="configService">Instance of the configuration service.</param>
-    /// <param name="conversionService">Instance of the language conversion service.</param>
     /// <param name="tagService">Instance of the language tag service.</param>
     /// <param name="queryService">Instance of the library query service.</param>
     /// <param name="hdrService">Instance of the subtitle extraction service.</param>
@@ -42,7 +40,6 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         ILibraryManager libraryManager,
         ILogger<MediaTagsManager> logger,
         ConfigurationService configService,
-        MediaConversionService conversionService,
         MediaTagService tagService,
         LibraryQueryService queryService,
         HdrExtractionService hdrService)
@@ -50,7 +47,6 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         _libraryManager = libraryManager;
         _logger = logger;
         _configService = configService;
-        _conversionService = conversionService;
         _tagService = tagService;
         _queryService = queryService;
         _hdrService = hdrService;
@@ -77,7 +73,6 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         var resolutionPrefix = _configService.GetResolutionPrefix();
         var hdrPrefix = _configService.GetHdrTypePrefix();
         var whitelist = MediaTagService.ParseWhitelist(_configService.WhitelistTags);
-        var disableUndefinedTags = true;
         var tagSeriesOnly = _configService.TagSeriesOnly;
 
         _logger.LogInformation(
@@ -91,7 +86,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         LogScanConfiguration(fullScan, synchronously, hdrTags, tagSeriesOnly);
 
         // Create scan context to pass parameters
-        var scanContext = (resolutionPrefix, hdrPrefix, whitelist, disableUndefinedTags, tagSeriesOnly);
+        var scanContext = (resolutionPrefix, hdrPrefix, whitelist, tagSeriesOnly);
 
         // Process the libraries
         switch (type.ToLowerInvariant())
@@ -185,7 +180,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <summary>
     /// Processes all library types in sequence.
     /// </summary>
-    private async Task ProcessAllLibraryTypes(bool fullScan, bool synchronously, bool subtitleTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext)
+    private async Task ProcessAllLibraryTypes(bool fullScan, bool synchronously, bool subtitleTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
     {
         await ProcessLibraryMovies(fullScan, synchronously, subtitleTags, scanContext).ConfigureAwait(false);
         await ProcessLibrarySeries(fullScan, synchronously, subtitleTags, scanContext).ConfigureAwait(false);
@@ -201,7 +196,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <param name="hdrTags">if set to <c>true</c> [extract subtitle languages].</param>
     /// <param name="scanContext">Scan context containing prefixes and whitelist.</param>
     /// <returns>A <see cref="Task"/> representing the library scan progress.</returns>
-    private async Task ProcessLibraryMovies(bool fullScan, bool synchronously, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext)
+    private async Task ProcessLibraryMovies(bool fullScan, bool synchronously, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
     {
         LogProcessingHeader("Processing movies...");
 
@@ -218,7 +213,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
             moviesSkipped);
     }
 
-    private async Task<bool> ProcessMovie(Movie movie, bool fullScan, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken)
+    private async Task<bool> ProcessMovie(Movie movie, bool fullScan, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken)
     {
         if (movie is not Video video)
         {
@@ -254,7 +249,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <param name="hdrTags">if set to <c>true</c> [extract subtitle languages].</param>
     /// <param name="scanContext">Scan context containing prefixes and whitelist.</param>
     /// <returns>A <see cref="Task"/> representing the library scan progress.</returns>
-    private async Task ProcessLibrarySeries(bool fullScan, bool synchronously, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext)
+    private async Task ProcessLibrarySeries(bool fullScan, bool synchronously, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
     {
         LogProcessingHeader("Processing series...");
 
@@ -283,7 +278,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
             skippedSeries);
     }
 
-    private async Task ProcessSeries(Series series, bool fullScan, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken)
+    private async Task ProcessSeries(Series series, bool fullScan, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken)
     {
         var seasons = _queryService.GetSeasonsFromSeries(series);
         if (seasons == null || seasons.Count == 0)
@@ -310,7 +305,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         if (seriesResolutionsName.Count > 0)
         {
             seriesResolutionsName = await Task.Run(
-                () => _tagService.AddResolutionTags(series, seriesResolutionsName, TagType.Resolution, convertFromIso: false, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist),
+                () => _tagService.AddResolutionTags(series, seriesResolutionsName, TagType.Resolution, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -318,7 +313,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         if (seriesHdrTypesName.Count > 0 && hdrTags)
         {
             seriesHdrTypesName = await Task.Run(
-                () => _tagService.AddResolutionTags(series, seriesHdrTypesName, TagType.Hdr, convertFromIso: false, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist),
+                () => _tagService.AddResolutionTags(series, seriesHdrTypesName, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -355,7 +350,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         Series series,
         bool fullScan,
         bool subtitleTags,
-        (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext,
+        (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext,
         CancellationToken cancellationToken)
     {
         var episodes = _queryService.GetEpisodesFromSeason(season);
@@ -402,7 +397,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
             if (seasonResolutionsName.Count > 0)
             {
                 seasonResolutionsName = await Task.Run(
-                    () => _tagService.AddResolutionTags(season, seasonResolutionsName, TagType.Resolution, convertFromIso: false, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist),
+                    () => _tagService.AddResolutionTags(season, seasonResolutionsName, TagType.Resolution, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist),
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -410,7 +405,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
             if (seasonHdrTypesName.Count > 0 && subtitleTags)
             {
                 seasonHdrTypesName = await Task.Run(
-                    () => _tagService.AddResolutionTags(season, seasonHdrTypesName, TagType.Hdr, convertFromIso: false, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist),
+                    () => _tagService.AddResolutionTags(season, seasonHdrTypesName, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist),
                     cancellationToken).ConfigureAwait(false);
             }
         }
@@ -458,7 +453,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         Episode episode,
         bool fullScan,
         bool subtitleTags,
-        (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext,
+        (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext,
         CancellationToken cancellationToken)
     {
         if (episode is not Video video)
@@ -500,7 +495,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <param name="hdrTags">if set to <c>true</c> [extract subtitle languages].</param>
     /// <param name="scanContext">Scan context containing prefixes and whitelist.</param>
     /// <returns>A <see cref="Task"/> representing the library scan progress.</returns>
-    private async Task ProcessLibraryCollections(bool fullScan, bool synchronously, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext)
+    private async Task ProcessLibraryCollections(bool fullScan, bool synchronously, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
     {
         LogProcessingHeader("Processing collections...");
 
@@ -517,7 +512,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
             collectionsSkipped);
     }
 
-    private async Task<bool> ProcessCollection(BoxSet collection, bool fullRefresh, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken)
+    private async Task<bool> ProcessCollection(BoxSet collection, bool fullRefresh, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken)
     {
         // Alternative approach using GetLinkedChildren if the above doesn't work:
         var collectionItems = collection.GetLinkedChildren()
@@ -552,7 +547,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         collectionResolutions = _tagService.StripTagPrefix(collectionResolutions, TagType.Resolution, scanContext.ResolutionPrefix, scanContext.HdrPrefix);
 
         // Add language tags to the box set
-        var addedResolutions = await Task.Run(() => _tagService.AddResolutionTags(collection, collectionResolutions, TagType.Resolution, convertFromIso: false, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist), cancellationToken).ConfigureAwait(false);
+        var addedResolutions = await Task.Run(() => _tagService.AddResolutionTags(collection, collectionResolutions, TagType.Resolution, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist), cancellationToken).ConfigureAwait(false);
 
         // Strip subtitle language prefix
         collectionHdrTypes = _tagService.StripTagPrefix(collectionHdrTypes, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix);
@@ -561,7 +556,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         List<string> addedHdrTypes = new List<string>();
         if (hdrTags && collectionHdrTypes.Count > 0)
         {
-            addedHdrTypes = await Task.Run(() => _tagService.AddResolutionTags(collection, collectionHdrTypes, TagType.Hdr, convertFromIso: false, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist), cancellationToken).ConfigureAwait(false);
+            addedHdrTypes = await Task.Run(() => _tagService.AddResolutionTags(collection, collectionHdrTypes, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist), cancellationToken).ConfigureAwait(false);
         }
 
         // Save collection to repository only once after all tag modifications
@@ -595,7 +590,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <param name="scanContext">Scan context with prefixes and configuration.</param>
     /// <returns>Tuple indicating if video should be processed and any existing languages found as LanguageNames.</returns>
     private (bool ShouldProcess, List<string> ExistingAudio, List<string> ExistingSubtitle) CheckAndPrepareVideoForProcessing(
-        Video video, bool fullScan, bool hdrTags, bool getExistingTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext)
+        Video video, bool fullScan, bool hdrTags, bool getExistingTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
     {
         bool shouldProcess = fullScan;
         var existingResolutionsName = new List<string>();
@@ -647,7 +642,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         return (shouldProcess, existingResolutionsName, existingHdrTypesName);
     }
 
-    private async Task<(List<string> Resolutions, List<string> HdrTypes)> ProcessVideo(Video video, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken, bool saveTags = true)
+    private async Task<(List<string> Resolutions, List<string> HdrTypes)> ProcessVideo(Video video, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken, bool saveTags = true)
     {
         var resolutionsName = new List<string>();
         var hdrTypesName = new List<string>();
@@ -664,11 +659,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
                 if (saveTags)
                 {
                     // Still try to add undefined tag if no sources found
-                    await _tagService.AddResolutionTagsOrUndefined(video, resolutionsName, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist, scanContext.DisableUndefinedTags, cancellationToken).ConfigureAwait(false);
-                }
-                else if (!scanContext.DisableUndefinedTags)
-                {
-                    resolutionsName = _conversionService.ConvertIsoToLanguageNames(new List<string> { "SD" });
+                    await _tagService.AddResolutionTagsOrUndefined(video, resolutionsName, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist, cancellationToken).ConfigureAwait(false);
                 }
 
                 return (resolutionsName, hdrTypesName);
@@ -688,33 +679,11 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
 
                 foreach (var stream in videoStreams)
                 {
-                    var langCode = stream.Language;
-                    if (!string.IsNullOrEmpty(langCode) &&
-                        !langCode.Equals("und", StringComparison.OrdinalIgnoreCase) &&
-                        !langCode.Equals("root", StringComparison.OrdinalIgnoreCase))
+                    // TODO: The actual logic lol
+                    var yRes = stream.Height;
+                    var xRes = stream.Height;
+                    if (hdrTags)
                     {
-                        // Convert 2-letter codes to 3-letter codes
-                        resolutionsName.Add(langCode);
-                    }
-                }
-
-                // Extract subtitle languages if enabled
-                if (hdrTags)
-                {
-                    var subtitleStreams = source.MediaStreams
-                        .Where(s => s.Type == MediaBrowser.Model.Entities.MediaStreamType.Subtitle)
-                        .ToList();
-
-                    foreach (var stream in subtitleStreams)
-                    {
-                        var langCode = stream.Language;
-                        if (!string.IsNullOrEmpty(langCode) &&
-                            !langCode.Equals("und", StringComparison.OrdinalIgnoreCase) &&
-                            !langCode.Equals("root", StringComparison.OrdinalIgnoreCase))
-                        {
-                            // Convert 2-letter codes to 3-letter codes
-                            resolutionsName.Add(langCode);
-                        }
                     }
                 }
             }
@@ -732,23 +701,23 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
                 if (resolutionsName.Count > 0)
                 {
                     // Add audio language tags
-                    resolutionsName = await Task.Run(() => _tagService.AddResolutionTags(video, resolutionsName, TagType.Resolution, convertFromIso: true, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist), cancellationToken).ConfigureAwait(false);
+                    resolutionsName = await Task.Run(() => _tagService.AddResolutionTags(video, resolutionsName, TagType.Resolution, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist), cancellationToken).ConfigureAwait(false);
                     _logger.LogDebug("Added audio tags for VIDEO {VideoName}: {AudioLanguages}", video.Name, string.Join(", ", resolutionsName));
                 }
                 else
                 {
-                    await _tagService.AddResolutionTagsOrUndefined(video, resolutionsName, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist, scanContext.DisableUndefinedTags, cancellationToken).ConfigureAwait(false);
+                    await _tagService.AddResolutionTagsOrUndefined(video, resolutionsName, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist, cancellationToken).ConfigureAwait(false);
                 }
 
-                if (hdrTags && resolutionsName.Count > 0)
+                if (hdrTags && hdrTypesName.Count > 0)
                 {
-                    // Add subtitle language tags
-                    hdrTypesName = await Task.Run(() => _tagService.AddResolutionTags(video, resolutionsName, TagType.Hdr, convertFromIso: true, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist), cancellationToken).ConfigureAwait(false);
+                    // TODO: HDR tags!
+                    hdrTypesName = await Task.Run(() => _tagService.AddResolutionTags(video, resolutionsName, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist), cancellationToken).ConfigureAwait(false);
                     _logger.LogDebug("Added subtitle tags for VIDEO {VideoName}: {SubtitleLanguages}", video.Name, string.Join(", ", hdrTypesName));
                 }
                 else if (hdrTags)
                 {
-                    _logger.LogWarning("No subtitle information found for VIDEO {VideoName}", video.Name);
+                    _logger.LogWarning("No range information found for VIDEO {VideoName}", video.Name);
                 }
 
                 // Save video to repository only once after all tag modifications
@@ -759,20 +728,14 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
                 // Read-only mode: convert ISO codes to names without modifying the item
                 if (resolutionsName.Count > 0)
                 {
-                    var filtered = _tagService.FilterOutResolutions(video, resolutionsName, scanContext.Whitelist);
-                    resolutionsName = _conversionService.ConvertIsoToLanguageNames(filtered)
-                        .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-                }
-                else if (!scanContext.DisableUndefinedTags)
-                {
-                    resolutionsName = _conversionService.ConvertIsoToLanguageNames(new List<string> { "und" });
+                    var filtered = _tagService.FilterOutTags(video, resolutionsName, scanContext.Whitelist);
+                    resolutionsName = filtered.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
                 }
 
                 if (hdrTags && hdrTypesName.Count > 0)
                 {
-                    var filtered = _tagService.FilterOutResolutions(video, resolutionsName, scanContext.Whitelist);
-                    hdrTypesName = _conversionService.ConvertIsoToLanguageNames(filtered)
-                        .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+                    var filtered = _tagService.FilterOutTags(video, resolutionsName, scanContext.Whitelist);
+                    hdrTypesName = filtered.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
                 }
             }
         }

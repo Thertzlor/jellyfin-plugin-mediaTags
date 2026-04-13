@@ -34,7 +34,6 @@ public class MediaTagService
     private readonly ILibraryManager _libraryManager;
     private readonly ILogger<MediaTagService> _logger;
     private readonly ConfigurationService _configService;
-    private readonly MediaConversionService _conversionService;
     private static readonly char[] Separator = new[] { ',' };
 
     /// <summary>
@@ -43,17 +42,14 @@ public class MediaTagService
     /// <param name="libraryManager">Instance of the library manager.</param>
     /// <param name="logger">Instance of the logger.</param>
     /// <param name="configService">Instance of the configuration service.</param>
-    /// <param name="conversionService">Instance of the language conversion service.</param>
     public MediaTagService(
         ILibraryManager libraryManager,
         ILogger<MediaTagService> logger,
-        ConfigurationService configService,
-        MediaConversionService conversionService)
+        ConfigurationService configService)
     {
         _libraryManager = libraryManager;
         _logger = logger;
         _configService = configService;
-        _conversionService = conversionService;
     }
 
     /// <summary>
@@ -108,20 +104,14 @@ public class MediaTagService
     /// <param name="item">The item to add tags to.</param>
     /// <param name="resolutions">List of languages.</param>
     /// <param name="type">The tag type (Audio or Subtitle).</param>
-    /// <param name="convertFromIso">True to convert ISO codes to language names, false if already language names.</param>
     /// <param name="resolutionPrefix">The audio prefix to use.</param>
     /// <param name="hdrPrefix">The subtitle prefix to use.</param>
     /// <param name="whitelist">The whitelist to use for filtering.</param>
     /// <returns>List of added languages.</returns>
-    public List<string> AddResolutionTags(BaseItem item, List<string> resolutions, TagType type, bool convertFromIso, string resolutionPrefix, string hdrPrefix, List<string> whitelist)
+    public List<string> AddResolutionTags(BaseItem item, List<string> resolutions, TagType type, string resolutionPrefix, string hdrPrefix, List<string> whitelist)
     {
         // Make sure languages are unique
         resolutions = resolutions.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-
-        if (convertFromIso)
-        {
-            resolutions = FilterOutResolutions(item, resolutions, whitelist);
-        }
 
         resolutions = resolutions.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         var prefix = type == TagType.Resolution ? resolutionPrefix : hdrPrefix;
@@ -161,18 +151,18 @@ public class MediaTagService
     /// Filters out languages based on provided whitelist.
     /// </summary>
     /// <param name="item">The item being processed (for logging).</param>
-    /// <param name="languages">List of language ISO codes to filter.</param>
+    /// <param name="tags">List of language ISO codes to filter.</param>
     /// <param name="whitelist">The whitelist to use.</param>
     /// <returns>Filtered list of language ISO codes.</returns>
-    public List<string> FilterOutResolutions(BaseItem item, List<string> languages, List<string> whitelist)
+    public List<string> FilterOutTags(BaseItem item, List<string> tags, List<string> whitelist)
     {
         if (whitelist.Count == 0)
         {
-            return languages;
+            return tags;
         }
 
-        var filteredOutResolutions = languages.Except(whitelist).ToList();
-        var filteredResolutions = languages.Intersect(whitelist).ToList();
+        var filteredOutResolutions = tags.Except(whitelist).ToList();
+        var filteredResolutions = tags.Intersect(whitelist).ToList();
 
         if (filteredOutResolutions.Count > 0)
         {
@@ -215,20 +205,13 @@ public class MediaTagService
     /// <param name="resolutionPrefix">The audio prefix to use.</param>
     /// <param name="hdrPrefix">The subtitle prefix to use.</param>
     /// <param name="whitelist">The whitelist to use for filtering.</param>
-    /// <param name="disableUndefinedTags">Whether undefined tags are disabled.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of added language ISO codes.</returns>
-    public async Task<List<string>> AddResolutionTagsOrUndefined(BaseItem item, List<string> resolutions, string resolutionPrefix, string hdrPrefix, List<string> whitelist, bool disableUndefinedTags, CancellationToken cancellationToken)
+    public async Task<List<string>> AddResolutionTagsOrUndefined(BaseItem item, List<string> resolutions, string resolutionPrefix, string hdrPrefix, List<string> whitelist, CancellationToken cancellationToken)
     {
         if (resolutions.Count > 0)
         {
-            return await Task.Run(() => AddResolutionTags(item, resolutions, TagType.Resolution, convertFromIso: true, resolutionPrefix, hdrPrefix, whitelist), cancellationToken).ConfigureAwait(false);
-        }
-
-        if (!disableUndefinedTags)
-        {
-            await Task.Run(() => AddResolutionTags(item, new List<string> { "und" }, TagType.Resolution, convertFromIso: true, resolutionPrefix, hdrPrefix, whitelist), cancellationToken).ConfigureAwait(false);
-            _logger.LogWarning("No audio language information found for {ItemName}, added {Prefix}Undetermined", item.Name, resolutionPrefix);
+            return await Task.Run(() => AddResolutionTags(item, resolutions, TagType.Resolution, resolutionPrefix, hdrPrefix, whitelist), cancellationToken).ConfigureAwait(false);
         }
         else
         {

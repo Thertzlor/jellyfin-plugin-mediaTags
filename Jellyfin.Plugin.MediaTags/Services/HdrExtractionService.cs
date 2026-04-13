@@ -12,20 +12,16 @@ namespace Jellyfin.Plugin.MediaTags.Services;
 public class HdrExtractionService
 {
     private readonly ILogger<HdrExtractionService> _logger;
-    private readonly MediaConversionService _conversionService;
     private static readonly Regex HdrTypesRegex = new(@"\.(HDR|Do?Vi?)\.", RegexOptions.Compiled);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HdrExtractionService"/> class.
     /// </summary>
     /// <param name="logger">Instance of the logger.</param>
-    /// <param name="conversionService">Instance of the language conversion service.</param>
     public HdrExtractionService(
-        ILogger<HdrExtractionService> logger,
-        MediaConversionService conversionService)
+        ILogger<HdrExtractionService> logger)
     {
         _logger = logger;
-        _conversionService = conversionService;
     }
 
     /// <summary>
