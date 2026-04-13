@@ -38,11 +38,6 @@ public class ConfigurationService
     public bool AddHdrTags => Config.AddHdrTags;
 
     /// <summary>
-    /// Gets a value indicating whether undefined language tags should be disabled.
-    /// </summary>
-    public bool DisableUndefinedLanguageTags => Config.DisableUndefinedLanguageTags;
-
-    /// <summary>
     /// Gets a value indicating whether non-media tagging is enabled.
     /// </summary>
     public bool EnableNonMediaTagging => Config.EnableNonMediaTagging;
@@ -60,7 +55,7 @@ public class ConfigurationService
     /// <summary>
     /// Gets the whitelist of language tags.
     /// </summary>
-    public string WhitelistLanguageTags => Config.WhitelistLanguageTags ?? string.Empty;
+    public string WhitelistTags => Config.WhitelistTags ?? string.Empty;
 
     /// <summary>
     /// Gets a value indicating whether to tag only the root Series, skipping Seasons and Episodes.

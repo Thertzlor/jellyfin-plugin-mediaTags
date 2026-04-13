@@ -13,7 +13,7 @@ public class HdrExtractionService
 {
     private readonly ILogger<HdrExtractionService> _logger;
     private readonly MediaConversionService _conversionService;
-    private static readonly Regex SubtitleLanguageRegex = new(@"\.(HDR|Do?Vi?)\.", RegexOptions.Compiled);
+    private static readonly Regex HdrTypesRegex = new(@"\.(HDR|Do?Vi?)\.", RegexOptions.Compiled);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HdrExtractionService"/> class.
@@ -35,9 +35,8 @@ public class HdrExtractionService
     /// <returns>List of extracted language ISO codes.</returns>
     public IEnumerable<string> ExtractHdrTypesFromFilename(string videoFile)
     {
-        return SubtitleLanguageRegex.Matches(videoFile)
+        return HdrTypesRegex.Matches(videoFile)
             .Where(match => match.Success)
-            .Select(match => match.Groups[1].Value.ToLowerInvariant())
-            .Where(ResolutionData.IsValidResolution);
+            .Select(match => match.Groups[1].Value.ToLowerInvariant());
     }
 }

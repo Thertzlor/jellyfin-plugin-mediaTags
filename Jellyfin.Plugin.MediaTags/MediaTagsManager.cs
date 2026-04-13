@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.MediaTags;
 
 /// <summary>
-/// Class LanguageTagsManager.
+/// Class MediaTagsManager.
 /// </summary>
 public sealed class MediaTagsManager : IHostedService, IDisposable
 {
@@ -32,7 +32,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// Initializes a new instance of the <see cref="MediaTagsManager"/> class.
     /// </summary>
     /// <param name="libraryManager">Instance of the <see cref="ILibraryManager"/> interface.</param>
-    /// <param name="logger">Instance of the <see cref="ILogger{LanguageTagsManager}"/> interface.</param>
+    /// <param name="logger">Instance of the <see cref="ILogger{MediaTagsManager}"/> interface.</param>
     /// <param name="configService">Instance of the configuration service.</param>
     /// <param name="conversionService">Instance of the language conversion service.</param>
     /// <param name="tagService">Instance of the language tag service.</param>
@@ -76,12 +76,12 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         // Get prefixes and whitelist once at the start to avoid repeated queries
         var resolutionPrefix = _configService.GetResolutionPrefix();
         var hdrPrefix = _configService.GetHdrTypePrefix();
-        var whitelist = MediaTagService.ParseWhitelist(_configService.WhitelistLanguageTags);
-        var disableUndefinedTags = _configService.DisableUndefinedLanguageTags;
+        var whitelist = MediaTagService.ParseWhitelist(_configService.WhitelistTags);
+        var disableUndefinedTags = true;
         var tagSeriesOnly = _configService.TagSeriesOnly;
 
         _logger.LogInformation(
-            "Scan configuration - Audio prefix: '{ResolutionPrefix}', Subtitle prefix: '{HdrPrefix}', Whitelist: {WhitelistCount} codes ({Whitelist}), Tag Series Only: {TagSeriesOnly}",
+            "Scan configuration - Resolution prefix: '{ResolutionPrefix}', HDR prefix: '{HdrPrefix}', Whitelist: {WhitelistCount} codes ({Whitelist}), Tag Series Only: {TagSeriesOnly}",
             resolutionPrefix,
             hdrPrefix,
             whitelist.Count,
@@ -118,7 +118,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <returns>A <see cref="Task"/> representing the removal process.</returns>
     public async Task RemoveAllResolutionTags()
     {
-        _logger.LogInformation("Starting removal of all language tags from library");
+        _logger.LogInformation("Starting removal of all media tags from library");
 
         try
         {
@@ -136,11 +136,11 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
                 await RemoveResolutionTagsFromItemType(itemKind, itemTypeName).ConfigureAwait(false);
             }
 
-            _logger.LogInformation("Completed removal of all language tags from library");
+            _logger.LogInformation("Completed removal of all media tags from library");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error removing all language tags from library");
+            _logger.LogError(ex, "Error removing all media tags from library");
             throw;
         }
     }
@@ -198,17 +198,17 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// </summary>
     /// <param name="fullScan">if set to <c>true</c> [full scan].</param>
     /// <param name="synchronously">if set to <c>true</c> [synchronously].</param>
-    /// <param name="subtitleTags">if set to <c>true</c> [extract subtitle languages].</param>
+    /// <param name="hdrTags">if set to <c>true</c> [extract subtitle languages].</param>
     /// <param name="scanContext">Scan context containing prefixes and whitelist.</param>
     /// <returns>A <see cref="Task"/> representing the library scan progress.</returns>
-    private async Task ProcessLibraryMovies(bool fullScan, bool synchronously, bool subtitleTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext)
+    private async Task ProcessLibraryMovies(bool fullScan, bool synchronously, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool DisableUndefinedTags, bool TagSeriesOnly) scanContext)
     {
         LogProcessingHeader("Processing movies...");
 
         var movies = _queryService.GetMoviesFromLibrary();
         var (moviesProcessed, moviesSkipped) = await ProcessItemsAsync(
             movies,
-            async (movie, ct) => await ProcessMovie(movie, fullScan, subtitleTags, scanContext, ct).ConfigureAwait(false),
+            async (movie, ct) => await ProcessMovie(movie, fullScan, hdrTags, scanContext, ct).ConfigureAwait(false),
             synchronously).ConfigureAwait(false);
 
         _logger.LogInformation(

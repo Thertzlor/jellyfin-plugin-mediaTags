@@ -8,7 +8,7 @@ namespace Jellyfin.Plugin.MediaTags;
 /// </summary>
 public static class ResolutionData
 {
-    private static readonly Dictionary<string, ResolutionInfo> _languageDictionary = InitializeResoluionDictionary();
+    private static readonly Dictionary<string, ResolutionInfo> _languageDictionary = InitializeResolutionDictionary();
 
     /// <summary>
     /// Gets the language dictionary for fast lookups.
@@ -37,7 +37,7 @@ public static class ResolutionData
         return !string.IsNullOrEmpty(code) && _languageDictionary.TryGetValue(code, out languageInfo);
     }
 
-    private static Dictionary<string, ResolutionInfo> InitializeResoluionDictionary()
+    private static Dictionary<string, ResolutionInfo> InitializeResolutionDictionary()
     {
         var languages = new Dictionary<string, ResolutionInfo>(StringComparer.OrdinalIgnoreCase);
 

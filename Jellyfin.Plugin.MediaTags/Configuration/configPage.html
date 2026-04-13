@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Language Tags</title>
+    <title>Media Tags</title>
 </head>
 
 <body>
@@ -12,7 +12,7 @@
                 <form class="tbsConfigurationPage">
                     <div class="sectionTitleContainer flex align-items-center">
                         <h2 class="sectionTitle">Language Tags</h2>
-                        <a is="emby-linkbutton" class="raised button-alt headerHelpButton emby-button" target="_blank" href="https://github.com/TheXaman/jellyfin-plugin-languageTags">Help</a>
+                        <a is="emby-linkbutton" class="raised button-alt headerHelpButton emby-button" target="_blank" href="https://github.com/Thertzlor/jellyfin-plugin-mediaTags">Help</a>
                     </div>
                     <div class="verticalSection">
                         <p>This plugin scans your movies, tv shows and collections for the available audio tracks and adds language tags to the items.</p>
@@ -58,13 +58,13 @@
                     <hr />
                     <div class="verticalSection">
                         <h3>Custom Tag Prefixes</h3>
-                        <label for="audio-language-tag-prefix">Audio Language Tag Prefix:</label>
+                        <label for="audio-language-tag-prefix">Resolution Tag Prefix:</label>
                         <input type="text" id="audio-language-tag-prefix" name="audio-language-tag-prefix" placeholder="language_" />
                         <div class="fieldDescription">
-                            <p>Customize the prefix for audio language tags. Default is "language_". Tags will be created as "[prefix][language_name]", e.g., "language_English", "language_German".</p>
+                            <p>Customize the prefix for resolution tags. Default is "res_". Tags will be created as "[prefix][resolution_name]", e.g., "res_1080p", "res_sdr".</p>
                             <p><strong>Leave empty to use default.</strong> If specified, must be at least 3 characters and different from subtitle prefix.</p>
                         </div>
-                        <label for="subtitle-language-tag-prefix">Subtitle Language Tag Prefix:</label>
+                        <label for="subtitle-language-tag-prefix">HDR Tag Prefix:</label>
                         <input type="text" id="subtitle-language-tag-prefix" name="subtitle-language-tag-prefix" placeholder="subtitle_language_" />
                         <div class="fieldDescription">
                             <p>Customize the prefix for subtitle language tags. Default is "subtitle_language_". Tags will be created as "[prefix][language_name]", e.g., "subtitle_language_English", "subtitle_language_French".</p>
@@ -73,10 +73,10 @@
                     </div>
                     <hr />
                     <div class="checkboxContainer checkboxContainer-withDescription">
-                        <h3>Subtitle Language Tags</h3>
+                        <h3>HDR Tags</h3>
                         <label>
                             <input is="emby-checkbox" type="checkbox" id="subtitle-tags" name="subtitle-tags" />
-                            <span>Extract subtitle language tags</span>
+                            <span>Extract HDR tags</span>
                         </label>
                         <div class="fieldDescription checkboxFieldDescription">
                             <p>When enabled, the plugin will add subtitle language tags e.g. "subtitle_language_French" based on the available subtitles.</p>
@@ -90,19 +90,19 @@
                             <span>Tag Series only (skip Seasons and Episodes)</span>
                         </label>
                         <div class="fieldDescription checkboxFieldDescription">
-                            <p>When enabled, language tags are applied only to the root Series item. Episode and season language data is still read and aggregated upward — only the tagging of seasons and episodes is skipped. This prevents Jellyfin's tag view from being flooded with hundreds of individual episode entries.</p>
-                            <p><strong>Note:</strong> Enabling this does not remove previously applied tags from episodes/seasons. Use <em>Remove ALL language tags</em> first if you want a clean state.</p>
+                            <p>When enabled, media tags are applied only to the root Series item. Episode and season media data is still read and aggregated upward — only the tagging of seasons and episodes is skipped. This prevents Jellyfin's tag view from being flooded with hundreds of individual episode entries.</p>
+                            <p><strong>Note:</strong> Enabling this does not remove previously applied tags from episodes/seasons. Use <em>Remove ALL media tags</em> first if you want a clean state.</p>
                         </div>
                     </div>
                     <hr />
                     <div class="checkboxContainer checkboxContainer-withDescription">
-                        <h3>Undefined Language Tags</h3>
+                        <h3>Undefined media Tags</h3>
                         <label>
                             <input is="emby-checkbox" type="checkbox" id="disable-undefined-tags" name="disable-undefined-tags" />
-                            <span>Disable undefined language tags</span>
+                            <span>Disable undefined media tags</span>
                         </label>
                         <div class="fieldDescription checkboxFieldDescription">
-                            <p>When enabled, the plugin will NOT add "language_Undetermined" tags for content where no language information can be determined. This is disabled by default (undefined tags are added).</p>
+                            <p>When enabled, the plugin will NOT add "res_Undetermined" tags for content where no information can be determined. This is disabled by default (undefined tags are added).</p>
                         </div>
                     </div>
                     <hr />
@@ -441,7 +441,7 @@
                 document.getElementById("whitelist-language-tags").value = isoCodes.join(", ");
             }
 
-            function loadSelectedLanguages(isoCodesString) {
+            function loadSelectedMediaTags(isoCodesString) {
                 selectedLanguages.clear();
 
                 if (!isoCodesString || isoCodesString.trim() === "") {
@@ -488,7 +488,7 @@
                     document.getElementById("subtitle-language-tag-prefix").value = config.SubtitleLanguageTagPrefix || "";
 
                     // Load selected languages from config
-                    loadSelectedLanguages(config.WhitelistLanguageTags || "");
+                    loadSelectedMediaTags(config.WhitelistLanguageTags || "");
 
                     // Load non-media tagging configuration
                     document.getElementById("enable-non-media-tagging").checked = config.EnableNonMediaTagging || false;
@@ -548,13 +548,13 @@
 
             $("#refresh-movies").on("click", function () {
                 var request = {
-                    url: ApiClient.getUrl("LanguageTags/RefreshLanguageTags?type=movies"),
+                    url: ApiClient.getUrl("MediaTags/RefreshMediaTags?type=movies"),
                     type: "POST",
                 };
 
                 ApiClient.fetch(request)
                     .then(function () {
-                        Dashboard.alert("Full language tag refresh for movies queued");
+                        Dashboard.alert("Full media tag refresh for movies queued");
                     })
                     .catch(function () {
                         Dashboard.alert({
@@ -565,13 +565,13 @@
 
             $("#refresh-tvshows").on("click", function () {
                 var request = {
-                    url: ApiClient.getUrl("LanguageTags/RefreshLanguageTags?type=tvshows"),
+                    url: ApiClient.getUrl("MediaTags/RefreshMediaTags?type=tvshows"),
                     type: "POST",
                 };
 
                 ApiClient.fetch(request)
                     .then(function () {
-                        Dashboard.alert("Full language tag refresh for TV shows queued");
+                        Dashboard.alert("Full media tag refresh for TV shows queued");
                     })
                     .catch(function () {
                         Dashboard.alert({
@@ -582,7 +582,7 @@
 
             $("#refresh-collections").on("click", function () {
                 var request = {
-                    url: ApiClient.getUrl("LanguageTags/RefreshLanguageTags?type=collections"),
+                    url: ApiClient.getUrl("MediaTags/RefreshMediaTags?type=collections"),
                     type: "POST",
                 };
 
@@ -599,7 +599,7 @@
 
             $("#refresh-everything").on("click", function () {
                 var request = {
-                    url: ApiClient.getUrl("LanguageTags/RefreshLanguageTags?type=everything"),
+                    url: ApiClient.getUrl("MediaTags/RefreshMediaTags?type=everything"),
                     type: "POST",
                 };
 
@@ -616,13 +616,13 @@
 
             $("#remove-all-tags").on("click", function () {
                 var request = {
-                    url: ApiClient.getUrl("LanguageTags/RemoveAllLanguageTags"),
+                    url: ApiClient.getUrl("MediaTags/RemoveAllMediaTags"),
                     type: "POST",
                 };
 
                 ApiClient.fetch(request)
                     .then(function () {
-                        Dashboard.alert("Removal of all language tags queued");
+                        Dashboard.alert("Removal of all media tags queued");
                     })
                     .catch(function () {
                         Dashboard.alert({
@@ -633,7 +633,7 @@
 
             $("#apply-non-media-tags").on("click", function () {
                 var request = {
-                    url: ApiClient.getUrl("LanguageTags/ApplyNonMediaTags"),
+                    url: ApiClient.getUrl("MediaTags/ApplyNonMediaTags"),
                     type: "POST",
                 };
 
@@ -650,7 +650,7 @@
 
             $("#remove-non-media-tags").on("click", function () {
                 var request = {
-                    url: ApiClient.getUrl("LanguageTags/RemoveNonMediaTags"),
+                    url: ApiClient.getUrl("MediaTags/RemoveNonMediaTags"),
                     type: "POST",
                 };
 

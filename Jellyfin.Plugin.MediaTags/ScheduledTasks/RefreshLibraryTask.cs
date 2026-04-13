@@ -23,13 +23,13 @@ public class RefreshLibraryTask : IScheduledTask, IDisposable
     /// Initializes a new instance of the <see cref="RefreshLibraryTask"/> class.
     /// </summary>
     /// <param name="logger">Instance of the <see cref="ILogger{RefreshLibraryTask}"/> interface.</param>
-    /// <param name="languageTagsManager">Instance of the <see cref="MediaTagsManager"/> class.</param>
+    /// <param name="mediaTagsManager">Instance of the <see cref="MediaTagsManager"/> class.</param>
     public RefreshLibraryTask(
         ILogger<RefreshLibraryTask> logger,
-        MediaTagsManager languageTagsManager)
+        MediaTagsManager mediaTagsManager)
     {
         _logger = logger;
-        _mediaTagsManager = languageTagsManager;
+        _mediaTagsManager = mediaTagsManager;
     }
 
     /// <inheritdoc/>

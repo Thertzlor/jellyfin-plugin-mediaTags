@@ -20,7 +20,7 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
         serviceCollection.AddSingleton<LibraryQueryService>();
         serviceCollection.AddSingleton<HdrExtractionService>();
 
-        // Register LanguageTagsManager as both singleton and hosted service
+        // Register MediaTagsManager as both singleton and hosted service
         serviceCollection.AddSingleton<MediaTagsManager>();
         serviceCollection.AddHostedService(provider => provider.GetRequiredService<MediaTagsManager>());
     }

@@ -18,22 +18,22 @@ namespace Jellyfin.Plugin.MediaTags.Api;
 [Authorize]
 [Route("[controller]")]
 [Produces(MediaTypeNames.Application.Json)]
-public class LanguageTagsController : ControllerBase, IDisposable
+public class MediaTagsController : ControllerBase, IDisposable
 {
-    private readonly MediaTagsManager _languageTagsManager;
-    private readonly ILogger<LanguageTagsController> _logger;
+    private readonly MediaTagsManager _mediaTagsManager;
+    private readonly ILogger<MediaTagsController> _logger;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LanguageTagsController"/> class.
+    /// Initializes a new instance of the <see cref="MediaTagsController"/> class.
     /// </summary>
-    /// <param name="logger">Instance of the <see cref="ILogger{LanguageTagsController}"/> interface.</param>
-    /// <param name="languageTagsManager">Instance of the <see cref="MediaTagsManager"/> class.</param>
-    public LanguageTagsController(
-        ILogger<LanguageTagsController> logger,
-        MediaTagsManager languageTagsManager)
+    /// <param name="logger">Instance of the <see cref="ILogger{MediaTagsController}"/> interface.</param>
+    /// <param name="mediaTagsManager">Instance of the <see cref="MediaTagsManager"/> class.</param>
+    public MediaTagsController(
+        ILogger<MediaTagsController> logger,
+        MediaTagsManager mediaTagsManager)
     {
         _logger = logger;
-        _languageTagsManager = languageTagsManager;
+        _mediaTagsManager = mediaTagsManager;
     }
 
     /// <summary>
@@ -42,13 +42,13 @@ public class LanguageTagsController : ControllerBase, IDisposable
     /// <param name="type">The type of refresh to perform. Default is "everything".</param>
     /// <response code="204">Library scan and language tagging started successfully. </response>
     /// <returns>A <see cref="NoContentResult"/> indicating success.</returns>
-    [HttpPost("RefreshLanguageTags")]
+    [HttpPost("RefreshMediaTags")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> RefreshMetadataRequest([FromQuery] string type = "everything")
     {
-        _logger.LogInformation("Starting a manual refresh of language tags for {Type}", type);
-        await _languageTagsManager.ScanLibrary(true, type).ConfigureAwait(false);
-        _logger.LogInformation("Completed refresh of language tags for {Type}", type);
+        _logger.LogInformation("Starting a manual refresh of media tags for {Type}", type);
+        await _mediaTagsManager.ScanLibrary(true, type).ConfigureAwait(false);
+        _logger.LogInformation("Completed refresh of media tags for {Type}", type);
         return NoContent();
     }
 
@@ -57,12 +57,12 @@ public class LanguageTagsController : ControllerBase, IDisposable
     /// </summary>
     /// <response code="204">Language tags removal started successfully. </response>
     /// <returns>A <see cref="NoContentResult"/> indicating success.</returns>
-    [HttpPost("RemoveAllLanguageTags")]
+    [HttpPost("RemoveAllMediaTags")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<ActionResult> RemoveAllLanguageTagsRequest()
+    public async Task<ActionResult> RemoveAllMediaTagsRequest()
     {
         _logger.LogInformation("Starting removal of all language tags from library");
-        await _languageTagsManager.RemoveAllResolutionTags().ConfigureAwait(false);
+        await _mediaTagsManager.RemoveAllResolutionTags().ConfigureAwait(false);
         _logger.LogInformation("Completed removal of all language tags from library");
         return NoContent();
     }
@@ -77,7 +77,7 @@ public class LanguageTagsController : ControllerBase, IDisposable
     public async Task<ActionResult> ApplyNonMediaTagsRequest()
     {
         _logger.LogInformation("Starting non-media item tagging");
-        await _languageTagsManager.ProcessNonMediaItems().ConfigureAwait(false);
+        await _mediaTagsManager.ProcessNonMediaItems().ConfigureAwait(false);
         _logger.LogInformation("Completed non-media item tagging");
         return NoContent();
     }
@@ -92,7 +92,7 @@ public class LanguageTagsController : ControllerBase, IDisposable
     public async Task<ActionResult> RemoveNonMediaTagsRequest()
     {
         _logger.LogInformation("Starting removal of non-media tags");
-        await _languageTagsManager.RemoveNonMediaTags().ConfigureAwait(false);
+        await _mediaTagsManager.RemoveNonMediaTags().ConfigureAwait(false);
         _logger.LogInformation("Completed removal of non-media tags");
         return NoContent();
     }
@@ -112,7 +112,7 @@ public class LanguageTagsController : ControllerBase, IDisposable
     {
         if (dispose)
         {
-            _languageTagsManager.Dispose();
+            _mediaTagsManager.Dispose();
         }
     }
 }

@@ -13,12 +13,11 @@ public class PluginConfiguration : BasePluginConfiguration
     public PluginConfiguration()
     {
         AlwaysForceFullRefresh = false;
-        WhitelistLanguageTags = string.Empty;
+        WhitelistTags = string.Empty;
         AddHdrTags = false;
         SynchronousRefresh = false;
-        DisableUndefinedLanguageTags = false;
-        ResolutionTagPrefix = "language_";
-        HdrTagPrefix = "subtitle_language_";
+        ResolutionTagPrefix = "res_";
+        HdrTagPrefix = "range_";
         EnableNonMediaTagging = false;
         NonMediaTag = "item";
         NonMediaItemTypes = string.Empty;
@@ -33,7 +32,7 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>
     /// Gets or sets the whitelist of language tags.
     /// </summary>
-    public string WhitelistLanguageTags { get; set; }
+    public string WhitelistTags { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether to extract subtitle languages.
@@ -44,11 +43,6 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Gets or sets a value indicating whether to refresh synchronously.
     /// </summary>
     public bool SynchronousRefresh { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to disable adding 'und' tags for undefined languages.
-    /// </summary>
-    public bool DisableUndefinedLanguageTags { get; set; }
 
     /// <summary>
     /// Gets or sets the prefix for Resolution tags.
