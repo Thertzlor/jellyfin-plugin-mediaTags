@@ -87,7 +87,7 @@ public class MediaTagService
     /// <param name="type">The tag type (Audio or Subtitle).</param>
     /// <param name="resolutionPrefix">The audio prefix to use.</param>
     /// <param name="hdrPrefix">The subtitle prefix to use.</param>
-    public void RemoveResolutionTags(BaseItem item, TagType type, string resolutionPrefix, string hdrPrefix)
+    public void RemoveMediaTags(BaseItem item, TagType type, string resolutionPrefix, string hdrPrefix)
     {
         var prefix = type == TagType.Resolution ? resolutionPrefix : hdrPrefix;
         var tagsToRemove = item.Tags.Where(tag => tag.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -102,32 +102,30 @@ public class MediaTagService
     /// Adds language tags to an item with provided prefixes and whitelist.
     /// </summary>
     /// <param name="item">The item to add tags to.</param>
-    /// <param name="resolutions">List of languages.</param>
+    /// <param name="tags">List of languages.</param>
     /// <param name="type">The tag type (Audio or Subtitle).</param>
     /// <param name="resolutionPrefix">The audio prefix to use.</param>
     /// <param name="hdrPrefix">The subtitle prefix to use.</param>
     /// <param name="whitelist">The whitelist to use for filtering.</param>
     /// <returns>List of added languages.</returns>
-    public List<string> AddResolutionTags(BaseItem item, List<string> resolutions, TagType type, string resolutionPrefix, string hdrPrefix, List<string> whitelist)
+    public List<string> AddMediaTags(BaseItem item, List<string> tags, TagType type, string resolutionPrefix, string hdrPrefix, List<string> whitelist)
     {
         // Make sure languages are unique
-        resolutions = resolutions.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-
-        resolutions = resolutions.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        tags = tags.Distinct(StringComparer.OrdinalIgnoreCase).Intersect(whitelist).ToList();
         var prefix = type == TagType.Resolution ? resolutionPrefix : hdrPrefix;
 
-        var newAddedResolutions = new List<string>();
-        foreach (var resolutionName in resolutions)
+        var newAddedTags = new List<string>();
+        foreach (var resolutionName in tags)
         {
             string tag = $"{prefix}{resolutionName}";
             if (!item.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
             {
                 item.AddTag(tag);
-                newAddedResolutions.Add(resolutionName);
+                newAddedTags.Add(resolutionName);
             }
         }
 
-        return newAddedResolutions;
+        return newAddedTags;
     }
 
     /// <summary>
@@ -161,18 +159,18 @@ public class MediaTagService
             return tags;
         }
 
-        var filteredOutResolutions = tags.Except(whitelist).ToList();
-        var filteredResolutions = tags.Intersect(whitelist).ToList();
+        var filteredOutTags = tags.Except(whitelist).ToList();
+        var filteredTags = tags.Intersect(whitelist).ToList();
 
-        if (filteredOutResolutions.Count > 0)
+        if (filteredOutTags.Count > 0)
         {
             _logger.LogInformation(
                 "Filtered out languages for {ItemName}: {Languages}",
                 item.Name,
-                string.Join(", ", filteredOutResolutions));
+                string.Join(", ", filteredOutTags));
         }
 
-        return filteredResolutions;
+        return filteredTags;
     }
 
     /// <summary>
@@ -207,11 +205,11 @@ public class MediaTagService
     /// <param name="whitelist">The whitelist to use for filtering.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of added language ISO codes.</returns>
-    public async Task<List<string>> AddResolutionTagsOrUndefined(BaseItem item, List<string> resolutions, string resolutionPrefix, string hdrPrefix, List<string> whitelist, CancellationToken cancellationToken)
+    public async Task<List<string>> AddMediaTagsOrUndefined(BaseItem item, List<string> resolutions, string resolutionPrefix, string hdrPrefix, List<string> whitelist, CancellationToken cancellationToken)
     {
         if (resolutions.Count > 0)
         {
-            return await Task.Run(() => AddResolutionTags(item, resolutions, TagType.Resolution, resolutionPrefix, hdrPrefix, whitelist), cancellationToken).ConfigureAwait(false);
+            return await Task.Run(() => AddMediaTags(item, resolutions, TagType.Resolution, resolutionPrefix, hdrPrefix, whitelist), cancellationToken).ConfigureAwait(false);
         }
         else
         {
