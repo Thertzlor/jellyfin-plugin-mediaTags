@@ -9,7 +9,7 @@ using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.LanguageTags.ScheduledTasks;
+namespace Jellyfin.Plugin.MediaTags.ScheduledTasks;
 
 /// <summary>
 /// Class representing a task to refresh library for new language tags.
@@ -17,39 +17,39 @@ namespace Jellyfin.Plugin.LanguageTags.ScheduledTasks;
 public class RefreshLibraryTask : IScheduledTask, IDisposable
 {
     private readonly ILogger<RefreshLibraryTask> _logger;
-    private readonly LanguageTagsManager _languageTagsManager;
+    private readonly MediaTagsManager _mediaTagsManager;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RefreshLibraryTask"/> class.
     /// </summary>
     /// <param name="logger">Instance of the <see cref="ILogger{RefreshLibraryTask}"/> interface.</param>
-    /// <param name="languageTagsManager">Instance of the <see cref="LanguageTagsManager"/> class.</param>
+    /// <param name="languageTagsManager">Instance of the <see cref="MediaTagsManager"/> class.</param>
     public RefreshLibraryTask(
         ILogger<RefreshLibraryTask> logger,
-        LanguageTagsManager languageTagsManager)
+        MediaTagsManager languageTagsManager)
     {
         _logger = logger;
-        _languageTagsManager = languageTagsManager;
+        _mediaTagsManager = languageTagsManager;
     }
 
     /// <inheritdoc/>
-    public string Name => "Scan library for new language tags";
+    public string Name => "Scan library for new media tags";
 
     /// <inheritdoc/>
-    public string Key => "LanguageTagsSetsRefreshLibraryTask";
+    public string Key => "MediaTagsSetsRefreshLibraryTask";
 
     /// <inheritdoc/>
-    public string Description => "Scans all items in the library for new language tags.";
+    public string Description => "Scans all items in the library for new media tags.";
 
     /// <inheritdoc/>
-    public string Category => "Language Tags";
+    public string Category => "Media Tags";
 
     /// <inheritdoc/>
     public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting LanguageTags refresh library task");
-        await _languageTagsManager.ScanLibrary(false).ConfigureAwait(false);
-        _logger.LogInformation("LanguageTags refresh library task finished");
+        _logger.LogInformation("Starting MediaTags refresh library task");
+        await _mediaTagsManager.ScanLibrary(false).ConfigureAwait(false);
+        _logger.LogInformation("MediaTags refresh library task finished");
     }
 
     /// <inheritdoc/>
@@ -74,7 +74,7 @@ public class RefreshLibraryTask : IScheduledTask, IDisposable
     {
         if (dispose)
         {
-            _languageTagsManager.Dispose();
+            _mediaTagsManager.Dispose();
         }
     }
 }

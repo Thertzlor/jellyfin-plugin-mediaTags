@@ -1,9 +1,9 @@
-using Jellyfin.Plugin.LanguageTags.Services;
+using Jellyfin.Plugin.MediaTags.Services;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Jellyfin.Plugin.LanguageTags;
+namespace Jellyfin.Plugin.MediaTags;
 
 /// <summary>
 /// Register plugin service.
@@ -15,13 +15,13 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
     {
         // Register services
         serviceCollection.AddSingleton<ConfigurationService>();
-        serviceCollection.AddSingleton<LanguageConversionService>();
-        serviceCollection.AddSingleton<LanguageTagService>();
+        serviceCollection.AddSingleton<MediaConversionService>();
+        serviceCollection.AddSingleton<MediaTagService>();
         serviceCollection.AddSingleton<LibraryQueryService>();
-        serviceCollection.AddSingleton<SubtitleExtractionService>();
+        serviceCollection.AddSingleton<HdrExtractionService>();
 
         // Register LanguageTagsManager as both singleton and hosted service
-        serviceCollection.AddSingleton<LanguageTagsManager>();
-        serviceCollection.AddHostedService(provider => provider.GetRequiredService<LanguageTagsManager>());
+        serviceCollection.AddSingleton<MediaTagsManager>();
+        serviceCollection.AddHostedService(provider => provider.GetRequiredService<MediaTagsManager>());
     }
 }

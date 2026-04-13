@@ -8,7 +8,7 @@ using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.LanguageTags.Services;
+namespace Jellyfin.Plugin.MediaTags.Services;
 
 /// <summary>
 /// Service for querying items from the Jellyfin library.

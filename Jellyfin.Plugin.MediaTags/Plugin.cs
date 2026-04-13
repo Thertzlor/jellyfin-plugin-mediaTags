@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Jellyfin.Plugin.LanguageTags.Configuration;
+using Jellyfin.Plugin.MediaTags.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 
-namespace Jellyfin.Plugin.LanguageTags;
+namespace Jellyfin.Plugin.MediaTags;
 
 /// <summary>
 /// The main plugin.
@@ -26,10 +26,10 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     }
 
     /// <inheritdoc />
-    public override string Name => "LanguageTags";
+    public override string Name => "MediaTags";
 
     /// <inheritdoc />
-    public override Guid Id => Guid.Parse("e6ee25c2-d12c-4382-a48c-66ee9c1c33cb");
+    public override Guid Id => Guid.Parse("e6ee25c2-d12c-4382-a48c-77ee9c1c33cb");
 
     /// <summary>
     /// Gets the current plugin instance.

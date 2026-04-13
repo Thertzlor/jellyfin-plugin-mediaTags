@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.LanguageTags.Api;
+namespace Jellyfin.Plugin.MediaTags.Api;
 
 /// <summary>
 /// The language tags Api controller.
@@ -20,17 +20,17 @@ namespace Jellyfin.Plugin.LanguageTags.Api;
 [Produces(MediaTypeNames.Application.Json)]
 public class LanguageTagsController : ControllerBase, IDisposable
 {
-    private readonly LanguageTagsManager _languageTagsManager;
+    private readonly MediaTagsManager _languageTagsManager;
     private readonly ILogger<LanguageTagsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LanguageTagsController"/> class.
     /// </summary>
     /// <param name="logger">Instance of the <see cref="ILogger{LanguageTagsController}"/> interface.</param>
-    /// <param name="languageTagsManager">Instance of the <see cref="LanguageTagsManager"/> class.</param>
+    /// <param name="languageTagsManager">Instance of the <see cref="MediaTagsManager"/> class.</param>
     public LanguageTagsController(
         ILogger<LanguageTagsController> logger,
-        LanguageTagsManager languageTagsManager)
+        MediaTagsManager languageTagsManager)
     {
         _logger = logger;
         _languageTagsManager = languageTagsManager;
@@ -62,7 +62,7 @@ public class LanguageTagsController : ControllerBase, IDisposable
     public async Task<ActionResult> RemoveAllLanguageTagsRequest()
     {
         _logger.LogInformation("Starting removal of all language tags from library");
-        await _languageTagsManager.RemoveAllLanguageTags().ConfigureAwait(false);
+        await _languageTagsManager.RemoveAllResolutionTags().ConfigureAwait(false);
         _logger.LogInformation("Completed removal of all language tags from library");
         return NoContent();
     }

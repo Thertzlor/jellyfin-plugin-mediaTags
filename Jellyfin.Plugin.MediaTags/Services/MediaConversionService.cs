@@ -3,56 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.LanguageTags.Services;
+namespace Jellyfin.Plugin.MediaTags.Services;
 
 /// <summary>
 /// Service for converting between ISO language codes and language names.
 /// </summary>
-public class LanguageConversionService
+public class MediaConversionService
 {
-    private readonly ILogger<LanguageConversionService> _logger;
+    private readonly ILogger<MediaConversionService> _logger;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LanguageConversionService"/> class.
+    /// Initializes a new instance of the <see cref="MediaConversionService"/> class.
     /// </summary>
     /// <param name="logger">Instance of the logger.</param>
-    public LanguageConversionService(ILogger<LanguageConversionService> logger)
+    public MediaConversionService(ILogger<MediaConversionService> logger)
     {
         _logger = logger;
-    }
-
-    /// <summary>
-    /// Converts a language code to its 3-letter ISO 639-2 equivalent.
-    /// If the input is already a 3-letter code, returns it as-is.
-    /// If the input is a 2-letter ISO 639-1 code, converts it to the corresponding 3-letter code.
-    /// </summary>
-    /// <param name="languageCode">The language code to convert.</param>
-    /// <returns>The 3-letter ISO 639-2 language code.</returns>
-    public string ConvertToThreeLetterIsoCode(string languageCode)
-    {
-        if (languageCode.Length == 3)
-        {
-            return languageCode;
-        }
-
-        if (languageCode.Length == 2 && LanguageData.TryGetLanguageInfo(languageCode, out var languageInfo) && languageInfo != null)
-        {
-            return GetPreferredIsoCode(languageInfo, languageCode);
-        }
-
-        return languageCode;
-    }
-
-    /// <summary>
-    /// Gets the preferred ISO code from language info, with fallback.
-    /// </summary>
-    /// <param name="languageInfo">The language info.</param>
-    /// <param name="fallback">Fallback value if no ISO code found.</param>
-    /// <returns>The preferred ISO code.</returns>
-    private static string GetPreferredIsoCode(LanguageInfo languageInfo, string fallback)
-    {
-        return !string.IsNullOrEmpty(languageInfo.Iso6392) ? languageInfo.Iso6392 :
-               !string.IsNullOrEmpty(languageInfo.Iso6392B) ? languageInfo.Iso6392B : fallback;
     }
 
     /// <summary>
@@ -82,7 +48,7 @@ public class LanguageConversionService
     /// <returns>The language name or the original code if not found.</returns>
     private string ConvertSingleIsoToLanguageName(string isoCode)
     {
-        if (LanguageData.TryGetLanguageInfo(isoCode, out var languageInfo) &&
+        if (ResolutionData.TryGetLanguageInfo(isoCode, out var languageInfo) &&
             languageInfo != null && !string.IsNullOrWhiteSpace(languageInfo.Name))
         {
             return languageInfo.Name;
@@ -99,12 +65,12 @@ public class LanguageConversionService
     /// <returns>The ISO code or the original name if not found.</returns>
     private string ConvertSingleLanguageNameToIso(string languageName)
     {
-        var foundLanguage = LanguageData.LanguageDictionary.Values
+        var foundLanguage = ResolutionData.LanguageDictionary.Values
             .FirstOrDefault(lang => lang.Name.Equals(languageName, StringComparison.OrdinalIgnoreCase));
 
         if (foundLanguage != null)
         {
-            return GetPreferredIsoCode(foundLanguage, languageName);
+            return foundLanguage.Name;
         }
 
         // If it's already an ISO code (3 letters), keep it

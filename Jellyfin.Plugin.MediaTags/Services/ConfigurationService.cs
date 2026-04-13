@@ -1,8 +1,8 @@
 using System;
-using Jellyfin.Plugin.LanguageTags.Configuration;
+using Jellyfin.Plugin.MediaTags.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.LanguageTags.Services;
+namespace Jellyfin.Plugin.MediaTags.Services;
 
 /// <summary>
 /// Service for accessing plugin configuration with validation.
@@ -35,7 +35,7 @@ public class ConfigurationService
     /// <summary>
     /// Gets a value indicating whether subtitle tags should be added.
     /// </summary>
-    public bool AddSubtitleTags => Config.AddSubtitleTags;
+    public bool AddHdrTags => Config.AddHdrTags;
 
     /// <summary>
     /// Gets a value indicating whether undefined language tags should be disabled.
@@ -71,15 +71,15 @@ public class ConfigurationService
     /// Gets the validated audio language tag prefix.
     /// </summary>
     /// <returns>The validated audio language tag prefix.</returns>
-    public string GetAudioLanguageTagPrefix()
-        => GetValidatedPrefix(Config.AudioLanguageTagPrefix, Config.SubtitleLanguageTagPrefix, "language_", "audio");
+    public string GetResolutionPrefix()
+        => GetValidatedPrefix(Config.ResolutionTagPrefix, Config.HdrTagPrefix, "language_", "audio");
 
     /// <summary>
     /// Gets the validated subtitle language tag prefix.
     /// </summary>
     /// <returns>The validated subtitle language tag prefix.</returns>
-    public string GetSubtitleLanguageTagPrefix()
-        => GetValidatedPrefix(Config.SubtitleLanguageTagPrefix, Config.AudioLanguageTagPrefix, "subtitle_language_", "subtitle");
+    public string GetHdrTypePrefix()
+        => GetValidatedPrefix(Config.HdrTagPrefix, Config.ResolutionTagPrefix, "subtitle_language_", "subtitle");
 
     /// <summary>
     /// Validates a prefix and ensures it's different from the other prefix.

@@ -1,6 +1,6 @@
 using MediaBrowser.Model.Plugins;
 
-namespace Jellyfin.Plugin.LanguageTags.Configuration;
+namespace Jellyfin.Plugin.MediaTags.Configuration;
 
 /// <summary>
 /// Class holding the plugin configuration.
@@ -14,11 +14,11 @@ public class PluginConfiguration : BasePluginConfiguration
     {
         AlwaysForceFullRefresh = false;
         WhitelistLanguageTags = string.Empty;
-        AddSubtitleTags = false;
+        AddHdrTags = false;
         SynchronousRefresh = false;
         DisableUndefinedLanguageTags = false;
-        AudioLanguageTagPrefix = "language_";
-        SubtitleLanguageTagPrefix = "subtitle_language_";
+        ResolutionTagPrefix = "language_";
+        HdrTagPrefix = "subtitle_language_";
         EnableNonMediaTagging = false;
         NonMediaTag = "item";
         NonMediaItemTypes = string.Empty;
@@ -38,7 +38,7 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>
     /// Gets or sets a value indicating whether to extract subtitle languages.
     /// </summary>
-    public bool AddSubtitleTags { get; set; }
+    public bool AddHdrTags { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether to refresh synchronously.
@@ -51,14 +51,14 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool DisableUndefinedLanguageTags { get; set; }
 
     /// <summary>
-    /// Gets or sets the prefix for audio language tags.
+    /// Gets or sets the prefix for Resolution tags.
     /// </summary>
-    public string AudioLanguageTagPrefix { get; set; }
+    public string ResolutionTagPrefix { get; set; }
 
     /// <summary>
-    /// Gets or sets the prefix for subtitle language tags.
+    /// Gets or sets the prefix for HDR type tags.
     /// </summary>
-    public string SubtitleLanguageTagPrefix { get; set; }
+    public string HdrTagPrefix { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether to enable non-media tagging.

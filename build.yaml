@@ -1,15 +1,14 @@
 ---
-name: "Language Tags"
-guid: "e6ee25c2-d12c-4382-a48c-66ee9c1c33cb"
-version: "0.5.3.0"
+name: "Media Tags"
+guid: "e6ee25c2-d12c-4382-a48c-77ee9c1c33cb"
+version: "0.0.1.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
-overview: "This plugin automatically adds language tags to the media."
+overview: "This plugin automatically adds Resolution and HDR tags to the media."
 description: |
-  "This plugin automatically scans the libraries and adds language tags to the media items.\n The languages are extracted from the audio tracks. Media types covered are movies,\n tv shows / series and collections."
+  "This plugin automatically scans the libraries and adds tags to the media items based on the properties of their video track. Media types covered are movies, tv shows / series and collections."
 category: "General"
-owner: "TheXaman"
-imageUrl: "https://raw.githubusercontent.com/TheXaman/jellyfin-plugin-languageTags/refs/heads/main/Images/logo.png"
+owner: "Thertzlor"
 artifacts:
-  - "Jellyfin.Plugin.LanguageTags.dll"
-changelog: '["feat: tag only whole TV Show, addresses #35","feat: add Tag Series Only checkbox to skip tagging Seasons and Episodes, addresses #35\" fix: added tagSeriesOnly to the scanContext fix: removed manual edits to auto generated files","feat: tag only whole TV Show, addresses #35","Update build.yaml and manifest.json for release version 0.5.2.2","Bump version to 0.5.2.2","fix: wrong variable check, addresses #32"]'
+  - "Jellyfin.Plugin.MediaTags.dll"
+changelog: 'nope'
