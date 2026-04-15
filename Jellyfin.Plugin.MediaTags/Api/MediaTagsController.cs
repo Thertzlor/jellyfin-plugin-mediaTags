@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.MediaTags.Api;
 
 /// <summary>
-/// The language tags Api controller.
+/// The media tags Api controller.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -37,10 +37,10 @@ public class MediaTagsController : ControllerBase, IDisposable
     }
 
     /// <summary>
-    /// Starts a manual FULL refresh of language tags.
+    /// Starts a manual FULL refresh of media tags.
     /// </summary>
     /// <param name="type">The type of refresh to perform. Default is "everything".</param>
-    /// <response code="204">Library scan and language tagging started successfully. </response>
+    /// <response code="204">Library scan and media tagging started successfully. </response>
     /// <returns>A <see cref="NoContentResult"/> indicating success.</returns>
     [HttpPost("RefreshMediaTags")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -53,17 +53,17 @@ public class MediaTagsController : ControllerBase, IDisposable
     }
 
     /// <summary>
-    /// Removes all language tags from all content in the library.
+    /// Removes all media tags from all content in the library.
     /// </summary>
-    /// <response code="204">Language tags removal started successfully. </response>
+    /// <response code="204">media tags removal started successfully. </response>
     /// <returns>A <see cref="NoContentResult"/> indicating success.</returns>
     [HttpPost("RemoveAllMediaTags")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> RemoveAllMediaTagsRequest()
     {
-        _logger.LogInformation("Starting removal of all language tags from library");
-        await _mediaTagsManager.RemoveAllResolutionTags().ConfigureAwait(false);
-        _logger.LogInformation("Completed removal of all language tags from library");
+        _logger.LogInformation("Starting removal of all media tags from library");
+        await _mediaTagsManager.RemoveAllMediaTags().ConfigureAwait(false);
+        _logger.LogInformation("Completed removal of all media tags from library");
         return NoContent();
     }
 

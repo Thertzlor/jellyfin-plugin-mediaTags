@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.MediaTags.ScheduledTasks;
 
 /// <summary>
-/// Class representing a task to refresh library for new language tags.
+/// Class representing a task to refresh library for new media tags.
 /// </summary>
 public class RefreshLibraryTask : IScheduledTask, IDisposable
 {

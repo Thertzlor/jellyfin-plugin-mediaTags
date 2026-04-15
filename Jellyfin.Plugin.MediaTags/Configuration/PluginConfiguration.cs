@@ -30,12 +30,12 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool AlwaysForceFullRefresh { get; set; }
 
     /// <summary>
-    /// Gets or sets the whitelist of language tags.
+    /// Gets or sets the whitelist of media tags.
     /// </summary>
     public string WhitelistTags { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to extract subtitle languages.
+    /// Gets or sets a value indicating whether to extract hdr tags.
     /// </summary>
     public bool AddHdrTags { get; set; }
 

@@ -59,13 +59,13 @@
                     <div class="verticalSection">
                         <h3>Custom Tag Prefixes</h3>
                         <label for="resolution-tag-prefix">Resolution Tag Prefix:</label>
-                        <input type="text" id="resolution-tag-prefix" name="resolution-tag-prefix" placeholder="language_" />
+                        <input type="text" id="resolution-tag-prefix" name="resolution-tag-prefix" placeholder="res_" />
                         <div class="fieldDescription">
                             <p>Customize the prefix for resolution tags. Default is "res_". Tags will be created as "[prefix][resolution_name]", e.g., "res_1080p", "res_sdr".</p>
                             <p><strong>Leave empty to use default.</strong> If specified, must be at least 3 characters and different from color range prefix.</p>
                         </div>
                         <label for="hdr-tag-prefix">HDR Tag Prefix:</label>
-                        <input type="text" id="hdr-tag-prefix" name="hdr-tag-prefix" placeholder="subtitle_language_" />
+                        <input type="text" id="hdr-tag-prefix" name="hdr-tag-prefix" placeholder="range_" />
                         <div class="fieldDescription">
                             <p>Customize the prefix for color range tags. Default is "range_". Tags will be created as "[prefix][hdr_type]", e.g., "range_HDR", "range_DV".</p>
                             <p><strong>Leave empty to use default.</strong> If specified, must be at least 3 characters and different from resolution prefix.</p>
@@ -278,7 +278,7 @@
                         searchResults.style.display = "block";
                         attachCheckboxListeners();
                     } else {
-                        searchResults.innerHTML = '<div style="padding: 10px; color: #888;">No languages found</div>';
+                        searchResults.innerHTML = '<div style="padding: 10px; color: #888;">No tags found</div>';
                         searchResults.style.display = "block";
                     }
                 });
@@ -314,7 +314,7 @@
                 countSpan.textContent = selectedResolutions.size;
 
                 if (selectedResolutions.size === 0) {
-                    chipsContainer.innerHTML = '<span style="color: #888;">No languages selected (all languages allowed)</span>';
+                    chipsContainer.innerHTML = '<span style="color: #888;">No tags selected (all tags allowed)</span>';
                 } else {
                     chipsContainer.innerHTML = "";
                     Array.from(selectedResolutions).sort().forEach(function (langName) {
@@ -385,8 +385,8 @@
                     document.getElementById("synchronous-refresh").checked = config.SynchronousRefresh;
                     document.getElementById("hdr-tags").checked = config.AddHdrTags;
                     document.getElementById("tv-show-series-only").checked = config.TagSeriesOnly;
-                    document.getElementById("resolution-tag-prefix").value = config.AudioLanguageTagPrefix || "";
-                    document.getElementById("hdr-tag-prefix").value = config.SubtitleLanguageTagPrefix || "";
+                    document.getElementById("resolution-tag-prefix").value = config.ResolutionTagPrefix || "";
+                    document.getElementById("hdr-tag-prefix").value = config.HdrTagPrefix || "";
 
                     // Load selected languages from config
                     loadSelectedMediaTags(config.WhitelistLanguageTags || "");
@@ -427,12 +427,12 @@
                     }
 
                     config.AlwaysForceFullRefresh = document.getElementById("always-force-full-refresh").checked;
-                    config.WhitelistLanguageTags = document.getElementById("whitelist-media-tags").value;
-                    config.SynchronousRefresh = document.getElementById("synchronous-refresh").checked;
                     config.AddHdrTags = document.getElementById("hdr-tags").checked;
+                    config.WhitelistTags = document.getElementById("whitelist-media-tags").value;
+                    config.SynchronousRefresh = document.getElementById("synchronous-refresh").checked;
                     config.TagSeriesOnly = document.getElementById("tv-show-series-only").checked;
-                    config.AudioLanguageTagPrefix = ResolutionPrefix;
-                    config.SubtitleLanguageTagPrefix = HdrPrefix;
+                    config.ResolutionTagPrefix = ResolutionPrefix;
+                    config.HdrTagPrefix = HdrPrefix;
 
                     // Save non-media tagging configuration
                     config.EnableNonMediaTagging = document.getElementById("enable-non-media-tagging").checked;
@@ -488,7 +488,7 @@
 
                 ApiClient.fetch(request)
                     .then(function () {
-                        Dashboard.alert("Full language tag refresh for collections queued");
+                        Dashboard.alert("Full media tag refresh for collections queued");
                     })
                     .catch(function () {
                         Dashboard.alert({

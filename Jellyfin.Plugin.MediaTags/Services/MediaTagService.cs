@@ -11,23 +11,23 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.MediaTags.Services;
 
 /// <summary>
-/// Type of language tag (audio or subtitle).
+/// Type of media tag (resolution or hdr).
 /// </summary>
 public enum TagType
 {
     /// <summary>
-    /// Audio language tag.
+    /// Resolution media tag.
     /// </summary>
     Resolution,
 
     /// <summary>
-    /// Subtitle language tag.
+    /// HDR media tag.
     /// </summary>
     Hdr
 }
 
 /// <summary>
-/// Service for managing language tags on library items.
+/// Service for managing media tags on library items.
 /// </summary>
 public class MediaTagService
 {
@@ -53,13 +53,13 @@ public class MediaTagService
     }
 
     /// <summary>
-    /// Checks if an item has language tags of the specified type.
+    /// Checks if an item has media tags of the specified type.
     /// </summary>
     /// <param name="item">The item to check.</param>
-    /// <param name="type">The tag type (Audio or Subtitle).</param>
-    /// <param name="resolutionPrefix">The audio prefix to use.</param>
-    /// <param name="hdrPrefix">The subtitle prefix to use.</param>
-    /// <returns>True if the item has language tags of the specified type.</returns>
+    /// <param name="type">The tag type (resolution or hdr).</param>
+    /// <param name="resolutionPrefix">The resolution prefix to use.</param>
+    /// <param name="hdrPrefix">The range prefix to use.</param>
+    /// <returns>True if the item has media tags of the specified type.</returns>
     public bool HasResolutionTags(BaseItem item, TagType type, string resolutionPrefix, string hdrPrefix)
     {
         var prefix = type == TagType.Resolution ? resolutionPrefix : hdrPrefix;
@@ -67,13 +67,13 @@ public class MediaTagService
     }
 
     /// <summary>
-    /// Gets language tags from an item for the specified type.
+    /// Gets media tags from an item for the specified type.
     /// </summary>
     /// <param name="item">The item to get tags from.</param>
-    /// <param name="type">The tag type (Audio or Subtitle).</param>
-    /// <param name="resolutionPrefix">The audio prefix to use.</param>
-    /// <param name="hdrPrefix">The subtitle prefix to use.</param>
-    /// <returns>List of language tags.</returns>
+    /// <param name="type">The tag type (resolution or hdr).</param>
+    /// <param name="resolutionPrefix">The resolution prefix to use.</param>
+    /// <param name="hdrPrefix">The range prefix to use.</param>
+    /// <returns>List of media tags.</returns>
     public List<string> GetResolutionTags(BaseItem item, TagType type, string resolutionPrefix, string hdrPrefix)
     {
         var prefix = type == TagType.Resolution ? resolutionPrefix : hdrPrefix;
@@ -81,12 +81,12 @@ public class MediaTagService
     }
 
     /// <summary>
-    /// Removes language tags from an item for the specified type.
+    /// Removes media tags from an item for the specified type.
     /// </summary>
     /// <param name="item">The item to remove tags from.</param>
-    /// <param name="type">The tag type (Audio or Subtitle).</param>
-    /// <param name="resolutionPrefix">The audio prefix to use.</param>
-    /// <param name="hdrPrefix">The subtitle prefix to use.</param>
+    /// <param name="type">The tag type (resolution or hdr).</param>
+    /// <param name="resolutionPrefix">The resolution prefix to use.</param>
+    /// <param name="hdrPrefix">The range prefix to use.</param>
     public void RemoveMediaTags(BaseItem item, TagType type, string resolutionPrefix, string hdrPrefix)
     {
         var prefix = type == TagType.Resolution ? resolutionPrefix : hdrPrefix;
@@ -99,19 +99,24 @@ public class MediaTagService
     }
 
     /// <summary>
-    /// Adds language tags to an item with provided prefixes and whitelist.
+    /// Adds media tags to an item with provided prefixes and whitelist.
     /// </summary>
     /// <param name="item">The item to add tags to.</param>
     /// <param name="tags">List of languages.</param>
-    /// <param name="type">The tag type (Audio or Subtitle).</param>
-    /// <param name="resolutionPrefix">The audio prefix to use.</param>
-    /// <param name="hdrPrefix">The subtitle prefix to use.</param>
+    /// <param name="type">The tag type (resolution or hdr).</param>
+    /// <param name="resolutionPrefix">The resolution prefix to use.</param>
+    /// <param name="hdrPrefix">The range prefix to use.</param>
     /// <param name="whitelist">The whitelist to use for filtering.</param>
     /// <returns>List of added languages.</returns>
     public List<string> AddMediaTags(BaseItem item, List<string> tags, TagType type, string resolutionPrefix, string hdrPrefix, List<string> whitelist)
     {
         // Make sure languages are unique
-        tags = tags.Distinct(StringComparer.OrdinalIgnoreCase).Intersect(whitelist).ToList();
+        tags = tags.Distinct(StringComparer.OrdinalIgnoreCase).ToList(); // Intersect(whitelist).ToList();
+        if (whitelist.Count != 0)
+        {
+            tags = tags.Intersect(whitelist).ToList();
+        }
+
         var prefix = type == TagType.Resolution ? resolutionPrefix : hdrPrefix;
 
         var newAddedTags = new List<string>();
@@ -133,8 +138,8 @@ public class MediaTagService
     /// </summary>
     /// <param name="tags">The tags to strip the prefix from.</param>
     /// <param name="type">The tag type to get the prefix for.</param>
-    /// <param name="resolutionPrefix">The audio prefix to use.</param>
-    /// <param name="hdrPrefix">The subtitle prefix to use.</param>
+    /// <param name="resolutionPrefix">The resolution prefix to use.</param>
+    /// <param name="hdrPrefix">The hdr prefix to use.</param>
     /// <returns>List of tags without the prefix.</returns>
     public List<string> StripTagPrefix(IEnumerable<string> tags, TagType type, string resolutionPrefix, string hdrPrefix)
     {
@@ -149,9 +154,9 @@ public class MediaTagService
     /// Filters out languages based on provided whitelist.
     /// </summary>
     /// <param name="item">The item being processed (for logging).</param>
-    /// <param name="tags">List of language ISO codes to filter.</param>
+    /// <param name="tags">List of tags to filter.</param>
     /// <param name="whitelist">The whitelist to use.</param>
-    /// <returns>Filtered list of language ISO codes.</returns>
+    /// <returns>Filtered list of tags.</returns>
     public List<string> FilterOutTags(BaseItem item, List<string> tags, List<string> whitelist)
     {
         if (whitelist.Count == 0)
@@ -177,7 +182,7 @@ public class MediaTagService
     /// Parses and validates a whitelist string.
     /// </summary>
     /// <param name="whitelistString">The whitelist string to parse.</param>
-    /// <returns>List of valid language codes.</returns>
+    /// <returns>List of valid tags.</returns>
     public static List<string> ParseWhitelist(string whitelistString)
     {
         if (string.IsNullOrWhiteSpace(whitelistString))
@@ -196,12 +201,12 @@ public class MediaTagService
     }
 
     /// <summary>
-    /// Adds audio language tags to an item, or undefined tag if no languages provided, using provided prefixes and whitelist.
+    /// Adds media tags to an item, using provided prefixes and whitelist.
     /// </summary>
     /// <param name="item">The item to add tags to.</param>
-    /// <param name="resolutions">List of audio language ISO codes.</param>
-    /// <param name="resolutionPrefix">The audio prefix to use.</param>
-    /// <param name="hdrPrefix">The subtitle prefix to use.</param>
+    /// <param name="resolutions">List of resolution names.</param>
+    /// <param name="resolutionPrefix">The resolution prefix to use.</param>
+    /// <param name="hdrPrefix">The range prefix to use.</param>
     /// <param name="whitelist">The whitelist to use for filtering.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of added language ISO codes.</returns>
@@ -213,7 +218,7 @@ public class MediaTagService
         }
         else
         {
-            _logger.LogWarning("No audio language information found for {ItemName}, skipped adding undefined tags", item.Name);
+            _logger.LogWarning("No resolution information found for {ItemName}, skipped adding undefined tags", item.Name);
         }
 
         return resolutions;

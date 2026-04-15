@@ -8,12 +8,12 @@ namespace Jellyfin.Plugin.MediaTags;
 /// </summary>
 public static class ResolutionData
 {
-    private static readonly List<ResolutionInfo> _languageDictionary = InitializeResolutionList();
+    private static readonly List<ResolutionInfo> _resolutionList = InitializeResolutionList();
 
     /// <summary>
     /// Gets the language dictionary for fast lookups.
     /// </summary>
-    public static List<ResolutionInfo> ResolutionList => _languageDictionary;
+    public static List<ResolutionInfo> ResolutionList => _resolutionList;
 
     /// <summary>
     /// Checks if a language code is valid (exists in the ISO standards).
@@ -22,7 +22,7 @@ public static class ResolutionData
     /// <returns>True if the code is a valid ISO language code, false otherwise.</returns>
     public static bool IsValidResolution(string? name)
     {
-        return !string.IsNullOrEmpty(name) && _languageDictionary.Exists(r => r.Name.Equals(name, StringComparison.Ordinal));
+        return !string.IsNullOrEmpty(name) && _resolutionList.Exists(r => r.Name.Equals(name, StringComparison.Ordinal));
     }
 
     /// <summary>
@@ -34,16 +34,16 @@ public static class ResolutionData
     public static bool TryGetResolutionInfo(string? code, out ResolutionInfo? resolutionInfo)
     {
         resolutionInfo = null;
-        return !string.IsNullOrEmpty(code) && _languageDictionary.Exists(r => r.Name.Equals(code, StringComparison.Ordinal));
+        return !string.IsNullOrEmpty(code) && _resolutionList.Exists(r => r.Name.Equals(code, StringComparison.Ordinal));
     }
 
     private static List<ResolutionInfo> InitializeResolutionList()
     {
-        var languages = new List<ResolutionInfo>();
+        var resolutions = new List<ResolutionInfo>();
 
         void AddResolution(ResolutionInfo res)
         {
-            languages.Add(res);
+            resolutions.Add(res);
         }
 
         // Add just one example language (German) as requested
@@ -51,6 +51,6 @@ public static class ResolutionData
         AddResolution(new ResolutionInfo { MaxHeight = 1080, MaxWidth = 1920, Name = "1080p" });
         AddResolution(new ResolutionInfo { MaxHeight = 720, MaxWidth = 1280, Name = "720p" });
 
-        return languages;
+        return resolutions;
     }
 }

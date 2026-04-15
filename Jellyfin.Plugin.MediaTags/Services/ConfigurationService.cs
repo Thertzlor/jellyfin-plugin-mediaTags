@@ -33,7 +33,7 @@ public class ConfigurationService
     public bool SynchronousRefresh => Config.SynchronousRefresh;
 
     /// <summary>
-    /// Gets a value indicating whether subtitle tags should be added.
+    /// Gets a value indicating whether HDR range tags should be added.
     /// </summary>
     public bool AddHdrTags => Config.AddHdrTags;
 
@@ -53,7 +53,7 @@ public class ConfigurationService
     public string NonMediaItemTypes => Config.NonMediaItemTypes ?? string.Empty;
 
     /// <summary>
-    /// Gets the whitelist of language tags.
+    /// Gets the whitelist of media tags.
     /// </summary>
     public string WhitelistTags => Config.WhitelistTags ?? string.Empty;
 
@@ -63,18 +63,18 @@ public class ConfigurationService
     public bool TagSeriesOnly => Config.TagSeriesOnly;
 
     /// <summary>
-    /// Gets the validated audio language tag prefix.
+    /// Gets the validated media tag prefix.
     /// </summary>
-    /// <returns>The validated audio language tag prefix.</returns>
+    /// <returns>The validated media tag prefix.</returns>
     public string GetResolutionPrefix()
-        => GetValidatedPrefix(Config.ResolutionTagPrefix, Config.HdrTagPrefix, "language_", "audio");
+        => GetValidatedPrefix(Config.ResolutionTagPrefix, Config.HdrTagPrefix, "res_", "resolution");
 
     /// <summary>
-    /// Gets the validated subtitle language tag prefix.
+    /// Gets the validated range tag prefix.
     /// </summary>
-    /// <returns>The validated subtitle language tag prefix.</returns>
+    /// <returns>The validated range tag prefix.</returns>
     public string GetHdrTypePrefix()
-        => GetValidatedPrefix(Config.HdrTagPrefix, Config.ResolutionTagPrefix, "subtitle_language_", "subtitle");
+        => GetValidatedPrefix(Config.HdrTagPrefix, Config.ResolutionTagPrefix, "range_", "color range");
 
     /// <summary>
     /// Validates a prefix and ensures it's different from the other prefix.
@@ -96,7 +96,7 @@ public class ConfigurationService
         if (!string.IsNullOrWhiteSpace(otherPrefix) && prefix.Equals(otherPrefix, StringComparison.OrdinalIgnoreCase))
         {
             _logger.LogWarning(
-                "Audio and subtitle prefixes cannot be identical. Using default {PrefixType} prefix '{DefaultPrefix}'",
+                "Resolution and color range prefixes cannot be identical. Using default {PrefixType} prefix '{DefaultPrefix}'",
                 prefixType,
                 defaultPrefix);
             return defaultPrefix;
