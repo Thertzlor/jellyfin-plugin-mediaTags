@@ -295,7 +295,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         var seriesResolutionsName = new List<string>();
         var seriesHdrTypesName = new List<string>();
 
-        // Process all seasons and aggregate languages
+        // Process all seasons and aggregate tags.
         foreach (var season in seasons)
         {
             var (seasonResolutions, seasonHdrTypes) = await ProcessSeason(
@@ -452,7 +452,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     }
 
     /// <summary>
-    /// Processes a single episode, returning languages and whether it was processed.
+    /// Processes a single episode, returning tags and whether it was processed.
     /// </summary>
     /// <param name="episode">The episode to process.</param>
     /// <param name="fullScan">Whether this is a full scan.</param>
@@ -480,7 +480,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
 
         if (scanContext.TagSeriesOnly)
         {
-            // Extract language data without applying tags or saving the episode.
+            // Extract media data without applying tags or saving the episode.
             // The data still propagates up so seasons and series can be tagged correctly.
             var (resolutionNames, hdrNames) = await ProcessVideo(video, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext, cancellationToken, saveTags: false).ConfigureAwait(false);
             return (resolutionNames, hdrNames, true);
@@ -563,7 +563,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
             collectionHdrTypes.AddRange(movieHdrTypes);
         }
 
-        // Strip resolution language prefix
+        // Strip resolution prefix
         collectionResolutions = _tagService.StripTagPrefix(collectionResolutions, TagType.Resolution, scanContext.ResolutionPrefix, scanContext.HdrPrefix);
 
         // Add media tags to the box set
@@ -611,7 +611,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <param name="dvpTags">if set to <c>true</c> [extract dv profile tags].</param>
     /// <param name="getExistingTags">Whether to get existing tags or not.</param>
     /// <param name="scanContext">Scan context with prefixes and configuration.</param>
-    /// <returns>Tuple indicating if video should be processed and any existing languages found as LanguageNames.</returns>
+    /// <returns>Tuple indicating if video should be processed and any existing tags found.</returns>
     private (bool ShouldProcess, List<string> ExistingResolution, List<string> ExistingHDr) CheckAndPrepareVideoForProcessing(
           Video video, bool fullScan, bool hdrTags, bool hdrPlusTags, bool dvTags, bool dvpTags, bool getExistingTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
     {
@@ -728,7 +728,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
 
             if (saveTags)
             {
-                // Add extracted languages if found
+                // Add extracted resolutions if found
                 if (resolutionsName.Count > 0)
                 {
                     // Add media tags

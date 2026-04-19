@@ -102,15 +102,15 @@ public class MediaTagService
     /// Adds media tags to an item with provided prefixes and whitelist.
     /// </summary>
     /// <param name="item">The item to add tags to.</param>
-    /// <param name="tags">List of languages.</param>
+    /// <param name="tags">List of tags.</param>
     /// <param name="type">The tag type (resolution or hdr).</param>
     /// <param name="resolutionPrefix">The resolution prefix to use.</param>
     /// <param name="hdrPrefix">The range prefix to use.</param>
     /// <param name="whitelist">The whitelist to use for filtering.</param>
-    /// <returns>List of added languages.</returns>
+    /// <returns>List of added tags.</returns>
     public List<string> AddMediaTags(BaseItem item, List<string> tags, TagType type, string resolutionPrefix, string hdrPrefix, List<string> whitelist)
     {
-        // Make sure languages are unique
+        // Make sure tags are unique
         tags = tags.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         if (whitelist.Count != 0)
         {
@@ -151,7 +151,7 @@ public class MediaTagService
     }
 
     /// <summary>
-    /// Filters out languages based on provided whitelist.
+    /// Filters out tags based on provided whitelist.
     /// </summary>
     /// <param name="item">The item being processed (for logging).</param>
     /// <param name="tags">List of tags to filter.</param>
@@ -170,7 +170,7 @@ public class MediaTagService
         if (filteredOutTags.Count > 0)
         {
             _logger.LogInformation(
-                "Filtered out languages for {ItemName}: {Languages}",
+                "Filtered out tags for {ItemName}: {Tags}",
                 item.Name,
                 string.Join(", ", filteredOutTags));
         }
@@ -205,7 +205,7 @@ public class MediaTagService
     /// <param name="hdrPrefix">The range prefix to use.</param>
     /// <param name="whitelist">The whitelist to use for filtering.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>List of added language ISO codes.</returns>
+    /// <returns>List of added tags.</returns>
     public async Task<List<string>> AddMediaTagsOrUndefined(BaseItem item, List<string> resolutions, string resolutionPrefix, string hdrPrefix, List<string> whitelist, CancellationToken cancellationToken)
     {
         if (resolutions.Count > 0)
