@@ -11,7 +11,7 @@ In addition to implementing more comprehensive information than Jellyfin's built
 For example if you have set up profiles which only connect to your server from devices with no 4K Resolution or HDR support you can use the Parental Controls to only display non 4K SDR media for the selected profiles.  
 Naturally the inverse is possible as well. The Kodi client on my TV which uses the Jellyfin for Kodi add-on is set to *only* access 4K or HDR/Dolby Vision content.
 
-This plugin is a fork of the [Jellyfin Language Tags](https://) plugin that offers the same functionality for languages from audio tracks and subtitles.
+This plugin is a fork of the [Jellyfin Language Tags](https://github.com/TheXaman/jellyfin-plugin-languageTags) plugin that offers the same functionality for languages from audio tracks and subtitles.
 
 ## Details
 The MediaTags plugin adds tags to the items contained in your Jellyfin personal collection based on the resolution and color range of the video tracks. This plugin will never modify the tags present in your actual media files, it will only create new tags which will be applied to the relevant "item" present in the Jellyfin's internal database. It uses Jellyfin’s MediaStreams API to read stream metadata directly (no FFmpeg), delivering a fast and reliable scan.  
