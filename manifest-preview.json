@@ -6,6 +6,15 @@
     "description": "This plugin automatically scans the libraries and adds tags to the media items based on the properties of their video track. Media types covered are movies, tv shows / series and collections. THIS IS THE PREVIEW CHANNEL - Use for testing new versions before they go to stable.",
     "owner": "Thertzlor",
     "category": "General",
-    "versions": []
+    "versions": [
+      {
+        "version": "0.5.3.0",
+        "changelog": "⚠️ PREVIEW RELEASE - For testing only\\n\\n-  - ",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Thertzlor/jellyfin-plugin-mediaTags/releases/download/v0.5.3.0-preview/media-tags_0.5.3.0.zip",
+        "checksum": "77f9d82ffb08add5c09fe485844dd73d",
+        "timestamp": "2026-04-19T16:00:21Z"
+      }
+    ]
   }
 ]
