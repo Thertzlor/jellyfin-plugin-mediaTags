@@ -111,7 +111,7 @@ public class MediaTagService
     public List<string> AddMediaTags(BaseItem item, List<string> tags, TagType type, string resolutionPrefix, string hdrPrefix, List<string> whitelist)
     {
         // Make sure languages are unique
-        tags = tags.Distinct(StringComparer.OrdinalIgnoreCase).ToList(); // Intersect(whitelist).ToList();
+        tags = tags.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         if (whitelist.Count != 0)
         {
             tags = tags.Intersect(whitelist).ToList();
@@ -190,12 +190,8 @@ public class MediaTagService
             return new List<string>();
         }
 
-        var undArray = new[] { "und" };
         return whitelistString.Split(Separator, StringSplitOptions.RemoveEmptyEntries)
             .Select(lang => lang.Trim())
-            .Where(lang => lang.Length == 3) // Valid ISO 639-2/B codes
-            .Distinct()
-            .Concat(undArray) // Always include "undefined"
             .Distinct()
             .ToList();
     }

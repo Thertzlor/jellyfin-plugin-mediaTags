@@ -38,6 +38,21 @@ public class ConfigurationService
     public bool AddHdrTags => Config.AddHdrTags;
 
     /// <summary>
+    /// Gets a value indicating whether HDR range tags should be added.
+    /// </summary>
+    public bool AddHdrPlusTags => Config.AddHdrPlusTags;
+
+    /// <summary>
+    /// Gets a value indicating whether HDR range tags should be added.
+    /// </summary>
+    public bool AddDVTags => Config.AddDVTags;
+
+    /// <summary>
+    /// Gets a value indicating whether HDR range tags should be added.
+    /// </summary>
+    public bool AddDVPTags => Config.AddDVPTags;
+
+    /// <summary>
     /// Gets a value indicating whether non-media tagging is enabled.
     /// </summary>
     public bool EnableNonMediaTagging => Config.EnableNonMediaTagging;

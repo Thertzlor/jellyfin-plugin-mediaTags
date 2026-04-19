@@ -64,6 +64,9 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         fullScan = fullScan || _configService.AlwaysForceFullRefresh;
         var synchronously = _configService.SynchronousRefresh;
         var hdrTags = _configService.AddHdrTags;
+        var hdrPlusTags = _configService.AddHdrPlusTags;
+        var dvTags = _configService.AddDVTags;
+        var dvpTags = _configService.AddDVPTags;
 
         // Get prefixes and whitelist once at the start to avoid repeated queries
         var resolutionPrefix = _configService.GetResolutionPrefix();
@@ -79,7 +82,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
             whitelist.Count > 0 ? string.Join(", ", whitelist) : "none",
             tagSeriesOnly);
 
-        LogScanConfiguration(fullScan, synchronously, hdrTags, tagSeriesOnly);
+        LogScanConfiguration(fullScan, synchronously, hdrTags, hdrPlusTags, dvTags, dvpTags, tagSeriesOnly);
 
         // Create scan context to pass parameters
         var scanContext = (resolutionPrefix, hdrPrefix, whitelist, tagSeriesOnly);
@@ -88,17 +91,17 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         switch (type.ToLowerInvariant())
         {
             case "movies":
-                await ProcessLibraryMovies(fullScan, synchronously, hdrTags, scanContext).ConfigureAwait(false);
+                await ProcessLibraryMovies(fullScan, synchronously, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext).ConfigureAwait(false);
                 break;
             case "series":
             case "tvshows":
-                await ProcessLibrarySeries(fullScan, synchronously, hdrTags, scanContext).ConfigureAwait(false);
+                await ProcessLibrarySeries(fullScan, synchronously, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext).ConfigureAwait(false);
                 break;
             case "collections":
-                await ProcessLibraryCollections(fullScan, synchronously, hdrTags, scanContext).ConfigureAwait(false);
+                await ProcessLibraryCollections(fullScan, synchronously, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext).ConfigureAwait(false);
                 break;
             default:
-                await ProcessAllLibraryTypes(fullScan, synchronously, hdrTags, scanContext).ConfigureAwait(false);
+                await ProcessAllLibraryTypes(fullScan, synchronously, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext).ConfigureAwait(false);
                 break;
         }
     }
@@ -176,11 +179,11 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <summary>
     /// Processes all library types in sequence.
     /// </summary>
-    private async Task ProcessAllLibraryTypes(bool fullScan, bool synchronously, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
+    private async Task ProcessAllLibraryTypes(bool fullScan, bool synchronously, bool hdrTags, bool hdrPlusTags, bool dvTags, bool dvpTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
     {
-        await ProcessLibraryMovies(fullScan, synchronously, hdrTags, scanContext).ConfigureAwait(false);
-        await ProcessLibrarySeries(fullScan, synchronously, hdrTags, scanContext).ConfigureAwait(false);
-        await ProcessLibraryCollections(fullScan, synchronously, hdrTags, scanContext).ConfigureAwait(false);
+        await ProcessLibraryMovies(fullScan, synchronously, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext).ConfigureAwait(false);
+        await ProcessLibrarySeries(fullScan, synchronously, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext).ConfigureAwait(false);
+        await ProcessLibraryCollections(fullScan, synchronously, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext).ConfigureAwait(false);
         await ProcessNonMediaItems().ConfigureAwait(false);
     }
 
@@ -190,16 +193,19 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <param name="fullScan">if set to <c>true</c> [full scan].</param>
     /// <param name="synchronously">if set to <c>true</c> [synchronously].</param>
     /// <param name="hdrTags">if set to <c>true</c> [extract hdr tags].</param>
+    /// <param name="hdrPlusTags">if set to <c>true</c> [extract hdr plus tags].</param>
+    /// <param name="dvTags">if set to <c>true</c> [extract dv tags].</param>
+    /// <param name="dvpTags">if set to <c>true</c> [extract dv profile tags].</param>
     /// <param name="scanContext">Scan context containing prefixes and whitelist.</param>
     /// <returns>A <see cref="Task"/> representing the library scan progress.</returns>
-    private async Task ProcessLibraryMovies(bool fullScan, bool synchronously, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
+    private async Task ProcessLibraryMovies(bool fullScan, bool synchronously, bool hdrTags, bool hdrPlusTags, bool dvTags, bool dvpTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
     {
         LogProcessingHeader("Processing movies...");
 
         var movies = _queryService.GetMoviesFromLibrary();
         var (moviesProcessed, moviesSkipped) = await ProcessItemsAsync(
             movies,
-            async (movie, ct) => await ProcessMovie(movie, fullScan, hdrTags, scanContext, ct).ConfigureAwait(false),
+            async (movie, ct) => await ProcessMovie(movie, fullScan, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext, ct).ConfigureAwait(false),
             synchronously).ConfigureAwait(false);
 
         _logger.LogInformation(
@@ -209,18 +215,18 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
             moviesSkipped);
     }
 
-    private async Task<bool> ProcessMovie(Movie movie, bool fullScan, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken)
+    private async Task<bool> ProcessMovie(Movie movie, bool fullScan, bool hdrTags, bool hdrPlusTags, bool dvTags, bool dvpTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken)
     {
         if (movie is not Video video)
         {
             return false;
         }
 
-        var (shouldProcess, _, _) = CheckAndPrepareVideoForProcessing(video, fullScan, hdrTags, false, scanContext);
+        var (shouldProcess, _, _) = CheckAndPrepareVideoForProcessing(video, fullScan, hdrTags, hdrPlusTags, dvTags, dvpTags, false, scanContext);
 
         if (shouldProcess)
         {
-            var (resolutions, hdrTypes) = await ProcessVideo(video, hdrTags, scanContext, cancellationToken).ConfigureAwait(false);
+            var (resolutions, hdrTypes) = await ProcessVideo(video, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext, cancellationToken).ConfigureAwait(false);
 
             if (resolutions.Count > 0 || hdrTypes.Count > 0)
             {
@@ -243,9 +249,12 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <param name="fullScan">if set to <c>true</c> [full scan].</param>
     /// <param name="synchronously">if set to <c>true</c> [synchronously].</param>
     /// <param name="hdrTags">if set to <c>true</c> [extract hdr tags].</param>
+    /// <param name="hdrPlusTags">if set to <c>true</c> [extract hdr plus tags].</param>
+    /// <param name="dvTags">if set to <c>true</c> [extract dv tags].</param>
+    /// <param name="dvpTags">if set to <c>true</c> [extract dv profile tags].</param>
     /// <param name="scanContext">Scan context containing prefixes and whitelist.</param>
     /// <returns>A <see cref="Task"/> representing the library scan progress.</returns>
-    private async Task ProcessLibrarySeries(bool fullScan, bool synchronously, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
+    private async Task ProcessLibrarySeries(bool fullScan, bool synchronously, bool hdrTags, bool hdrPlusTags, bool dvTags, bool dvpTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
     {
         LogProcessingHeader("Processing series...");
 
@@ -256,7 +265,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
             {
                 if (seriesBaseItem is Series series)
                 {
-                    await ProcessSeries(series, fullScan, hdrTags, scanContext, ct).ConfigureAwait(false);
+                    await ProcessSeries(series, fullScan, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext, ct).ConfigureAwait(false);
                     return true;
                 }
                 else
@@ -274,7 +283,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
             skippedSeries);
     }
 
-    private async Task ProcessSeries(Series series, bool fullScan, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken)
+    private async Task ProcessSeries(Series series, bool fullScan, bool hdrTags, bool hdrPlusTags, bool dvTags, bool dvpTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken)
     {
         var seasons = _queryService.GetSeasonsFromSeries(series);
         if (seasons == null || seasons.Count == 0)
@@ -290,7 +299,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         foreach (var season in seasons)
         {
             var (seasonResolutions, seasonHdrTypes) = await ProcessSeason(
-                season, series, fullScan, hdrTags, scanContext, cancellationToken)
+                season, series, fullScan, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext, cancellationToken)
                 .ConfigureAwait(false);
 
             seriesResolutionsName.AddRange(seasonResolutions);
@@ -309,7 +318,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         if (seriesHdrTypesName.Count > 0 && hdrTags)
         {
             seriesHdrTypesName = await Task.Run(
-                () => _tagService.AddMediaTags(series, seriesHdrTypesName, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist),
+                () => _tagService.AddMediaTags(series, seriesHdrTypesName, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix, new List<string>()),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -338,16 +347,22 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <param name="series">The parent series.</param>
     /// <param name="fullScan">Whether this is a full scan.</param>
     /// <param name="hdrTags">Whether hdr processing is enabled.</param>
+    /// <param name="hdrPlusTags">if set to <c>true</c> [extract hdr plus tags].</param>
+    /// <param name="dvTags">if set to <c>true</c> [extract dv tags].</param>
+    /// <param name="dvpTags">if set to <c>true</c> [extract dv profile tags].</param>
     /// <param name="scanContext">Scan context containing prefixes and whitelist.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Tuple of (resolutions, hdr tags).</returns>
     private async Task<(List<string> Resolutions, List<string> HdrTypes)> ProcessSeason(
-        Season season,
-        Series series,
-        bool fullScan,
-        bool hdrTags,
-        (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext,
-        CancellationToken cancellationToken)
+          Season season,
+          Series series,
+          bool fullScan,
+          bool hdrTags,
+          bool hdrPlusTags,
+          bool dvTags,
+          bool dvpTags,
+          (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext,
+          CancellationToken cancellationToken)
     {
         var episodes = _queryService.GetEpisodesFromSeason(season);
 
@@ -371,7 +386,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         foreach (var episode in episodes)
         {
             var (resolutionNames, hdrNames, wasProcessed) =
-                await ProcessEpisode(episode, fullScan, hdrTags, scanContext, cancellationToken)
+                await ProcessEpisode(episode, fullScan, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext, cancellationToken)
                     .ConfigureAwait(false);
 
             seasonResolutionsName.AddRange(resolutionNames);
@@ -401,7 +416,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
             if (seasonHdrTypesName.Count > 0 && hdrTags)
             {
                 seasonHdrTypesName = await Task.Run(
-                    () => _tagService.AddMediaTags(season, seasonHdrTypesName, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist),
+                    () => _tagService.AddMediaTags(season, seasonHdrTypesName, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix, new List<string>()),
                     cancellationToken).ConfigureAwait(false);
             }
         }
@@ -442,15 +457,21 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <param name="episode">The episode to process.</param>
     /// <param name="fullScan">Whether this is a full scan.</param>
     /// <param name="hdrTags">Whether hdr processing is enabled.</param>
+    /// <param name="hdrPlusTags">if set to <c>true</c> [extract hdr plus tags].</param>
+    /// <param name="dvTags">if set to <c>true</c> [extract dv tags].</param>
+    /// <param name="dvpTags">if set to <c>true</c> [extract dv profile tags].</param>
     /// <param name="scanContext">Scan context containing prefixes and whitelist.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Tuple of (resolutions (Name), hdr tags (Name), was processed).</returns>
     private async Task<(List<string> Resolutions, List<string> HdrTypes, bool WasProcessed)> ProcessEpisode(
-        Episode episode,
-        bool fullScan,
-        bool hdrTags,
-        (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext,
-        CancellationToken cancellationToken)
+          Episode episode,
+          bool fullScan,
+          bool hdrTags,
+          bool hdrPlusTags,
+          bool dvTags,
+          bool dvpTags,
+          (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext,
+          CancellationToken cancellationToken)
     {
         if (episode is not Video video)
         {
@@ -461,17 +482,17 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         {
             // Extract language data without applying tags or saving the episode.
             // The data still propagates up so seasons and series can be tagged correctly.
-            var (resolutionNames, hdrNames) = await ProcessVideo(video, hdrTags, scanContext, cancellationToken, saveTags: false).ConfigureAwait(false);
+            var (resolutionNames, hdrNames) = await ProcessVideo(video, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext, cancellationToken, saveTags: false).ConfigureAwait(false);
             return (resolutionNames, hdrNames, true);
         }
 
         var (shouldProcess, existingResolutionsName, existingHdrTypesName) =
-            CheckAndPrepareVideoForProcessing(video, fullScan, hdrTags, true, scanContext);
+            CheckAndPrepareVideoForProcessing(video, fullScan, hdrTags, hdrPlusTags, dvTags, dvpTags, true, scanContext);
 
         if (shouldProcess)
         {
             var (newResolutionsName, newHdrTypesName) =
-                await ProcessVideo(video, hdrTags, scanContext, cancellationToken).ConfigureAwait(false);
+                await ProcessVideo(video, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext, cancellationToken).ConfigureAwait(false);
 
             // Save episode to repository
             await episode.UpdateToRepositoryAsync(ItemUpdateType.MetadataEdit, cancellationToken)
@@ -489,16 +510,19 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <param name="fullScan">if set to <c>true</c> [full scan].</param>
     /// <param name="synchronously">if set to <c>true</c> [synchronously].</param>
     /// <param name="hdrTags">if set to <c>true</c> [extract hdr tags].</param>
+    /// <param name="hdrPlusTags">if set to <c>true</c> [extract hdr plus tags].</param>
+    /// <param name="dvTags">if set to <c>true</c> [extract dv tags].</param>
+    /// <param name="dvpTags">if set to <c>true</c> [extract dv profile tags].</param>
     /// <param name="scanContext">Scan context containing prefixes and whitelist.</param>
     /// <returns>A <see cref="Task"/> representing the library scan progress.</returns>
-    private async Task ProcessLibraryCollections(bool fullScan, bool synchronously, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
+    private async Task ProcessLibraryCollections(bool fullScan, bool synchronously, bool hdrTags, bool hdrPlusTags, bool dvTags, bool dvpTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
     {
         LogProcessingHeader("Processing collections...");
 
         var collections = _queryService.GetBoxSetsFromLibrary();
         var (collectionsProcessed, collectionsSkipped) = await ProcessItemsAsync(
             collections,
-            async (collection, ct) => await ProcessCollection(collection, fullScan, hdrTags, scanContext, ct).ConfigureAwait(false),
+            async (collection, ct) => await ProcessCollection(collection, fullScan, hdrTags, hdrPlusTags, dvTags, dvpTags, scanContext, ct).ConfigureAwait(false),
             synchronously).ConfigureAwait(false);
 
         _logger.LogInformation(
@@ -508,7 +532,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
             collectionsSkipped);
     }
 
-    private async Task<bool> ProcessCollection(BoxSet collection, bool fullRefresh, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken)
+    private async Task<bool> ProcessCollection(BoxSet collection, bool fullRefresh, bool hdrTags, bool hdrPlusTags, bool dvTags, bool dvpTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken)
     {
         // Alternative approach using GetLinkedChildren if the above doesn't work:
         var collectionItems = collection.GetLinkedChildren()
@@ -552,7 +576,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         List<string> addedHdrTypes = new List<string>();
         if (hdrTags && collectionHdrTypes.Count > 0)
         {
-            addedHdrTypes = await Task.Run(() => _tagService.AddMediaTags(collection, collectionHdrTypes, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist), cancellationToken).ConfigureAwait(false);
+            addedHdrTypes = await Task.Run(() => _tagService.AddMediaTags(collection, collectionHdrTypes, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix, new List<string>()), cancellationToken).ConfigureAwait(false);
         }
 
         // Save collection to repository only once after all tag modifications
@@ -582,11 +606,14 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <param name="video">The video item to check.</param>
     /// <param name="fullScan">Whether this is a full scan.</param>
     /// <param name="hdrTags">Whether hdr processing is enabled.</param>
+    /// <param name="hdrPlusTags">if set to <c>true</c> [extract hdr plus tags].</param>
+    /// <param name="dvTags">if set to <c>true</c> [extract dv tags].</param>
+    /// <param name="dvpTags">if set to <c>true</c> [extract dv profile tags].</param>
     /// <param name="getExistingTags">Whether to get existing tags or not.</param>
     /// <param name="scanContext">Scan context with prefixes and configuration.</param>
     /// <returns>Tuple indicating if video should be processed and any existing languages found as LanguageNames.</returns>
     private (bool ShouldProcess, List<string> ExistingResolution, List<string> ExistingHDr) CheckAndPrepareVideoForProcessing(
-        Video video, bool fullScan, bool hdrTags, bool getExistingTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
+          Video video, bool fullScan, bool hdrTags, bool hdrPlusTags, bool dvTags, bool dvpTags, bool getExistingTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext)
     {
         bool shouldProcess = fullScan;
         var existingResolutionsName = new List<string>();
@@ -638,7 +665,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
         return (shouldProcess, existingResolutionsName, existingHdrTypesName);
     }
 
-    private async Task<(List<string> Resolutions, List<string> HdrTypes)> ProcessVideo(Video video, bool hdrTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken, bool saveTags = true)
+    private async Task<(List<string> Resolutions, List<string> HdrTypes)> ProcessVideo(Video video, bool hdrTags, bool hdrPlusTags, bool dvTags, bool dvpTags, (string ResolutionPrefix, string HdrPrefix, List<string> Whitelist, bool TagSeriesOnly) scanContext, CancellationToken cancellationToken, bool saveTags = true)
     {
         var resolutionsName = new List<string>();
         var hdrTypesName = new List<string>();
@@ -682,7 +709,14 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
                     {
                         if (stream.VideoRange == VideoRange.HDR)
                         {
-                            hdrTypesName.Add(stream.DvVersionMajor == null ? "HDR" : "DV");
+                            if (dvTags && (stream.DvVersionMajor != null))
+                            {
+                                hdrTypesName.Add(dvpTags ? "DV" + (stream.DvProfile ?? 0) : "DV");
+                            }
+                            else
+                            {
+                                hdrTypesName.Add(hdrPlusTags && (stream.Hdr10PlusPresentFlag ?? false) ? "HDR10plus" : "HDR");
+                            }
                         }
                         else
                         {
@@ -709,7 +743,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
                 if (hdrTags && hdrTypesName.Count > 0)
                 {
                     // TODO: HDR tags!
-                    hdrTypesName = await Task.Run(() => _tagService.AddMediaTags(video, hdrTypesName, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix, scanContext.Whitelist), cancellationToken).ConfigureAwait(false);
+                    hdrTypesName = await Task.Run(() => _tagService.AddMediaTags(video, hdrTypesName, TagType.Hdr, scanContext.ResolutionPrefix, scanContext.HdrPrefix, new List<string>()), cancellationToken).ConfigureAwait(false);
                     _logger.LogDebug("Added ranhe tags for VIDEO {VideoName}: {HdrTypes}", video.Name, string.Join(", ", hdrTypesName));
                 }
                 else if (hdrTags)
@@ -943,7 +977,7 @@ public sealed class MediaTagsManager : IHostedService, IDisposable
     /// <summary>
     /// Logs the current scan configuration.
     /// </summary>
-    private void LogScanConfiguration(bool fullScan, bool synchronously, bool hdrTags, bool tagSeriesOnly)
+    private void LogScanConfiguration(bool fullScan, bool synchronously, bool hdrTags, bool hdrPlusTags, bool dvTags, bool dvpTags, bool tagSeriesOnly)
     {
         if (fullScan)
         {
