@@ -15,6 +15,9 @@ public class PluginConfiguration : BasePluginConfiguration
         AlwaysForceFullRefresh = false;
         WhitelistTags = string.Empty;
         AddHdrTags = false;
+        AddHdrPlusTags = false;
+        AddDVTags = false;
+        AddDVPTags = false;
         SynchronousRefresh = false;
         ResolutionTagPrefix = "res_";
         HdrTagPrefix = "range_";
@@ -38,6 +41,21 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Gets or sets a value indicating whether to extract hdr tags.
     /// </summary>
     public bool AddHdrTags { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to extract hdr tags.
+    /// </summary>
+    public bool AddHdrPlusTags { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to extract hdr tags.
+    /// </summary>
+    public bool AddDVTags { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to extract hdr tags.
+    /// </summary>
+    public bool AddDVPTags { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether to refresh synchronously.

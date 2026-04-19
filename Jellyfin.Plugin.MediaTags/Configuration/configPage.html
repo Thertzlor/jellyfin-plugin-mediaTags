@@ -75,8 +75,20 @@
                     <div class="checkboxContainer checkboxContainer-withDescription">
                         <h3>HDR Tags</h3>
                         <label>
-                            <input is="emby-checkbox" type="checkbox" id="hdr-tags" name="hdr-tags" />
-                            <span>Extract HDR tags</span>
+                            <input is="emby-checkbox" class="hdr-box" type="checkbox" id="hdr-tags" name="hdr-tags" />
+                            <span>Extract HDR tags, e.g. "range_HDR"</span>
+                        </label>
+                        <label>
+                            <input is="emby-checkbox" class="hdr-box" type="checkbox" id="hdrplus-tags" name="hdrplus-tags" />
+                            <span>Identify media that feature HDR10+ metadata, e.g "range_HDR10plus"</span>
+                        </label>
+                        <label>
+                            <input is="emby-checkbox" class="hdr-box" type="checkbox" id="dovi-tags" name="dovi-tags" />
+                            <span>Identify Dolby Vision, e.g. "range_DV" </span>
+                        </label>
+                        <label>
+                            <input is="emby-checkbox" class="hdr-box" type="checkbox" id="dovi-profile-tags" name="dovi-profile-tags" />
+                            <span>Identify the Dolby Vision profile in the tag, e.g "range_DV5" or "range_DV8"</span>
                         </label>
                         <div class="fieldDescription checkboxFieldDescription">
                             <p>When enabled, the plugin will add color range tags e.g. "range_HDR" based on the available metadata.</p>
@@ -343,24 +355,8 @@
                 document.getElementById("whitelist-media-tags").value = [...selectedResolutions].join(", ");
             }
 
-            function loadSelectedMediaTags(isoCodesString) {
-                selectedResolutions.clear();
+            function loadSelectedMediaTags() {
 
-                if (!isoCodesString || isoCodesString.trim() === "") {
-                    updateSelectedDisplay();
-                    return;
-                }
-
-                var isoCodes = isoCodesString.split(",").map(function (code) {return code.trim().toLowerCase();});
-
-                allResolutions.forEach(function (lang) {
-                    var hasMatch = lang.iso.some(function (code) {
-                        return isoCodes.includes(code.toLowerCase());
-                    });
-                    if (hasMatch) {
-                        selectedResolutions.add(lang.name);
-                    }
-                });
 
                 updateSelectedDisplay();
                 syncAllCheckboxes();
@@ -428,6 +424,9 @@
 
                     config.AlwaysForceFullRefresh = document.getElementById("always-force-full-refresh").checked;
                     config.AddHdrTags = document.getElementById("hdr-tags").checked;
+                    config.AddHdrPlusTags = document.getElementById("hdrplus-tags").checked;
+                    config.AddDVTags = document.getElementById("dovi-tags").checked;
+                    config.AddDVPTags = document.getElementById("dovi-profile-tags").checked;
                     config.WhitelistTags = document.getElementById("whitelist-media-tags").value;
                     config.SynchronousRefresh = document.getElementById("synchronous-refresh").checked;
                     config.TagSeriesOnly = document.getElementById("tv-show-series-only").checked;
