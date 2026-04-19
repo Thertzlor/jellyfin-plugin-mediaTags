@@ -4,11 +4,14 @@
 </p>
 
 ## About
-LanguageTags helps handling multi-language content in a multi-lingual household, allowing administrators to deliver a per-user experience depending on the user spoken language(s).</br>
-Another use case is to be able to retrieve a list of content that contains audio or subtitles in a specific language on the fly, essencialy enhancing the Jellyfin library's filter abilities.  
-Currently, these are features that Jellyfin is not natively supporting and that are, otherwise, very difficult (or not at all possible) to achieve without this plugin.
+The MediaTags plugin automates tagging media in your library with information about their resolution and HDR content.
 
-This plugin is a fork of the [Jellyfin Language Tags](https://) plugin that offers the same functionality for language information.
+In addition to implementing more comprehensive information than Jellyfin's built in Video Types feature, the generated tags can be used with User Permissions.
+
+For example if you have set up profiles which only connect to your server from devices with no 4K Resolution or HDR support you can use the Parental Controls to only display non 4K SDR media for the selected profiles.  
+Naturally the inverse is possible as well. The Kodi client on my TV which uses the Jellyfin for Kodi add-on is set to *only* access 4K or HDR/Dolby Vision content.
+
+This plugin is a fork of the [Jellyfin Language Tags](https://) plugin that offers the same functionality for languages from audio tracks and subtitles.
 
 ## Details
 The MediaTags plugin adds tags to the items contained in your Jellyfin personal collection based on the resolution and color range of the video tracks. This plugin will never modify the tags present in your actual media files, it will only create new tags which will be applied to the relevant "item" present in the Jellyfin's internal database. It uses Jellyfin’s MediaStreams API to read stream metadata directly (no FFmpeg), delivering a fast and reliable scan.  
