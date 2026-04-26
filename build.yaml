@@ -11,4 +11,4 @@ category: "General"
 owner: "Thertzlor"
 artifacts:
   - "Jellyfin.Plugin.MediaTags.dll"
-changelog: '["Update README.md","Update build.yaml and manifest.json for release version 0.1.1.0","Merge branch ''main'' of https://github.com/Thertzlor/jellyfin-plugin-mediaTags","corrected version"]'
+changelog: '["Update build.yaml and manifest.json for release version 0.1.1.0","Update README.md","Update build.yaml and manifest.json for release version 0.1.1.0","Merge branch ''main'' of https://github.com/Thertzlor/jellyfin-plugin-mediaTags","corrected version"]'
