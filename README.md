@@ -78,6 +78,9 @@ dotnet publish --configuration Release
 
 ## What’s New
 
+### v0.1.2.0
+* Removal of search function in configuration, as it wasn't neccesary.
+
 ### v0.1.1.0
 * Optimizations
 * Overhauled options menu
@@ -86,7 +89,6 @@ dotnet publish --configuration Release
 ### v0.0.1.0
 
 * Initial fork from LanguageTags.
-
 
 ---
 ## *NON-MEDIA ITEMS - Why would you want this?
@@ -107,3 +109,6 @@ res_4K
 range_HDR
 item
 ```
+## Todos
+* Permit user defined resolutions.
+* Check how exactly the internal Jellyfin SD/HD/FUllHD logic works, for comparison.
