@@ -8,6 +8,14 @@
     "category": "General",
     "versions": [
       {
+        "version": "0.1.2.0",
+        "changelog": "- bump to 0.1.2.0\n- readme updates\n- fixed manifest\n- Merge branch 'main' of https://github.com/Thertzlor/jellyfin-plugin-mediaTags\n- removed search\n- Update manifest.json\n- Update build.yaml and manifest.json for release version 0.1.1.0\n- Update build.yaml and manifest.json for release version 0.1.1.0\n- Update README.md\n- Update build.yaml and manifest.json for release version 0.1.1.0\n- Merge branch 'main' of https://github.com/Thertzlor/jellyfin-plugin-mediaTags\n- corrected version",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Thertzlor/jellyfin-plugin-mediaTags/releases/download/v0.1.2.0/media-tags_0.1.2.0.zip",
+        "checksum": "17d984539260aaf63b25396aeab07da0",
+        "timestamp": "2026-04-27T09:04:00Z"
+      },
+      {
         "version": "0.1.1.0",
         "changelog": "- Update build.yaml and manifest.json for release version 0.1.1.0\n- Update README.md\n- Update build.yaml and manifest.json for release version 0.1.1.0\n- Merge branch 'main' of https://github.com/Thertzlor/jellyfin-plugin-mediaTags\n- corrected version",
         "targetAbi": "10.11.0.0",
