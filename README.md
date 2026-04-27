@@ -78,6 +78,11 @@ dotnet publish --configuration Release
 
 ## What’s New
 
+### v0.1.1.0
+* Optimizations
+* Overhauled options menu
+* More specialized HDR/DV/HDR10plus logic
+
 ### v0.0.1.0
 
 * Initial fork from LanguageTags.
